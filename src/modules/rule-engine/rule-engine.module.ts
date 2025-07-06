@@ -4,8 +4,12 @@ import { RuleService } from './rule.service';
 import { RuleActionService } from './rule-action.service';
 import { RuleSchedulerService } from './rule-scheduler.service';
 import { QueryEngineService } from './query-engine.service';
+import { SupabaseModule } from '../supabase/supabase.module';
+import { ScheduleModule, SchedulerRegistry } from '@nestjs/schedule';
 
 @Module({
+  imports: [SupabaseModule, ScheduleModule.forRoot()],
   providers: [RuleEngineService, RuleService, RuleActionService, RuleSchedulerService, QueryEngineService]
+  
 })
 export class RuleEngineModule {}

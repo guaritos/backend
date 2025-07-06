@@ -6,7 +6,7 @@ import { RuleService } from './rule.service';
 export class RuleActionService {
   constructor(private readonly service: RuleService) {}
 
-  async run(actions: RuleAction[], ruleId: string): Promise<void> {
+  async run(actions: RuleAction[], ruleId: string, context: any): Promise<void> {
     for (const action of actions) {
       switch (action.type) {
         case 'tag':
@@ -16,27 +16,23 @@ export class RuleActionService {
             'WEBHOOK:',
             action.url,
             action.method,
-            action.headers,
-            action.body,
+            action.params?.headers,
+            action.params?.body,
           );
-          const { url, method = 'POST', headers, body } = action;
 
           try {
-            const res = await fetch(url, {
-              method: method,
-              headers: {
-                'Content-Type': 'application/json',
-                ...headers,
-              },
-              body: body && JSON.stringify(body),
+            const res = await fetch(action.url, {
+              method: action.method || 'POST',
+              headers: action.params?.headers || {},
+              body: action.params?.body
             });
             const resBody = await res.text();
             console.log(
-              `[Webhook] Sent to ${url}, status: ${res.status}`,
+              `[Webhook] Sent to ${action.url}, status: ${res.status}`,
               resBody,
             );
           } catch (error) {
-            console.error(`[Webhook] Failed to send to ${url}:`, error);
+            console.error(`[Webhook] Failed to send to ${action.url}:`, error);
           }
           break;
         case 'email':
@@ -44,5 +40,11 @@ export class RuleActionService {
           break;
       }
     }
+  }
+
+  async sendTemplateWebhook(): Promise<void> {
+    // This method is a placeholder for sending a webhook with a template.
+    // Implement the logic to send a webhook with a template here.
+    console.log('Sending template webhook...');
   }
 }

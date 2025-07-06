@@ -4,8 +4,11 @@ export type RuleAction =
     value: string[];
   }
 | {
-    type: 'notify';
-    message: string;
+    type: 'webhook';
+    url: string
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    headers: Record<string, string>;
+    body?: string;
   }
 | {
     type: 'email';

@@ -3,9 +3,10 @@ import { AggregateCondition, Condition } from '../types/rule.type';
 
 export interface Rule {
   id: string;
-  userId: string;
+  user_id: string;
   name: string;
   description?: string;
+  source: string;
   interval: string;
   when: Condition;
   aggregate?: AggregateCondition;

@@ -3,6 +3,7 @@ import { Rule } from './interfaces';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { parse } from 'csv-parse';
 
 @Injectable()
 export class RuleService {
@@ -81,5 +82,25 @@ export class RuleService {
     );
     const parsed = yaml.parse(file);
     return parsed;
+  }
+
+  async loadData(): Promise<any[]> {
+    const rows: any[] = [];
+    await new Promise((resolve, reject) => {
+      fs.createReadStream('src/modules/rule-engine/rules/data.csv')
+        .pipe(parse({ columns: true }))
+        .on('data', (row) => {
+          rows.push(row);
+        })
+        .on('end', () => {
+          console.log('CSV file successfully processed');
+          resolve(null);
+        })
+        .on('error', (error) => {
+          console.error('Error processing CSV file:', error);
+          reject(error);
+        });
+    });
+    return rows;
   }
 }

@@ -53,6 +53,27 @@ export class RuleService {
     return data[0];
   }
 
+  async updateRule(id: string, rule: Partial<Rule>): Promise<Rule> {
+    const { data, error } = await this.supabase
+      .from('rules')
+      .update(rule)
+      .eq('id', id)
+      .select();
+    if (error) {
+      console.error('Error updating rule in Supabase:', error);
+      throw new Error('Failed to update rule');
+    }
+    return data[0];
+  }
+
+  async deleteRule(id: string): Promise<void> {
+    const { error } = await this.supabase.from('rules').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting rule in Supabase:', error);
+      throw new Error('Failed to delete rule');
+    }
+  }
+
   async loadRules(): Promise<Rule[]> {
     const file = fs.readFileSync(
       'src/modules/rule-engine/rules/rules.yaml',

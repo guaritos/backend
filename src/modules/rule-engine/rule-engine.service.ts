@@ -21,7 +21,7 @@ export class RuleEngineService {
     const aggOk = rule.aggregate && this.queryEngine.matchAggregate(filtered, rule.aggregate);
 
     if (filtered.length > 0 && aggOk) {
-      await this.action.run(rule.then, filtered);
+      await this.action.run(rule.then, rule.id);
     }
     
     return filtered;

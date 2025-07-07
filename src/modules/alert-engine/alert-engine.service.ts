@@ -21,10 +21,35 @@ export class AlertEngineService {
     return data[0];
   }
 
+  async getAlerts(): Promise<Alert[]> {
+    const { data, error } = await this.supabase
+      .from('alerts')
+      .select(`*, rules(*)`)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching alerts from Supabase:', error);
+      throw new Error('Failed to fetch alerts');
+    }
+    return data;
+  }
+
+  async getAlertById(id: string): Promise<Alert> {
+    const { data, error } = await this.supabase
+      .from('alerts')
+      .select(`*, rules(*)`)
+      .eq('id', id)
+      .single();
+    if (error) {
+      console.error('Error fetching alert by ID from Supabase:', error);
+      throw new Error('Failed to fetch alert by ID');
+    }
+    return data;
+  }
+
   async getAlertsByRuleId(ruleId: string): Promise<Alert[]> {
     const { data, error } = await this.supabase
       .from('alerts')
-      .select('*')
+      .select(`*, rules(*)`)
       .eq('rule_id', ruleId);
     if (error) {
       console.error('Error fetching alerts by rule ID from Supabase:', error);

@@ -46,6 +46,10 @@ export class RuleEngineController {
   @Post('rule')
   async createRule(@Body() ruleData: any) {
     const rule = await this.ruleService.createRule(ruleData);
+    if (!rule) {
+      throw new Error('Failed to create rule');
+    }
+    // TODO: Add execute method to run the rule immediately if needed, remember to handle the source data
     this.scheduleService.registerCron(rule);
     return rule;
   }

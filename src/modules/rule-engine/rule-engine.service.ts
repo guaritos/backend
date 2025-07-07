@@ -4,12 +4,14 @@ import { RuleActionService } from './rule-action.service';
 import { Rule } from './interfaces';
 import { ComparisonOp, PlainCondition } from './types/rule.type';
 import { QueryEngineService } from './query-engine.service';
+import { AlertEngineService } from '../alert-engine/alert-engine.service';
 
 @Injectable()
 export class RuleEngineService {
   constructor(
     private readonly loader: RuleService,
     private readonly action: RuleActionService,
+    private readonly alertEngine: AlertEngineService,
     private readonly queryEngine: QueryEngineService,
   ) {}
 
@@ -21,6 +23,14 @@ export class RuleEngineService {
     const aggOk = rule.aggregate && this.queryEngine.matchAggregate(filtered, rule.aggregate);
 
     if (filtered.length > 0 && aggOk) {
+      await this.alertEngine.createAlert({
+        rule_id: rule.id,
+        result: filtered,
+        data: dataset,
+        actions_fired: [],
+        status: 'pending',
+        message: 'Alert triggered because rule condition matched',
+      });
       await this.action.run(rule.then, rule.id, filtered);
     }
     

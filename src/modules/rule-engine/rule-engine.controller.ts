@@ -33,6 +33,22 @@ export class RuleEngineController {
     return this.ruleService.getRules();
   }
 
+  @Get('rules/:userId')
+  async getRulesByUserId(@Param('userId') userId: string) {
+    return this.ruleService.getRulesByUserId(userId);
+  }
+
+  @Get('rule/:id')
+  async getRuleById(@Param('id') ruleId: string) {
+    return this.ruleService.getRuleById(ruleId);
+  }
+
+  @Delete('rule/:id')
+  async deleteRule(@Param('id') ruleId: string) {
+    await this.ruleService.deleteRule(ruleId);
+    return { message: `Rule with ID ${ruleId} deleted.` };
+  }
+
   @Get('cron')
   async getCronRules() {
     const rules = await this.scheduleService.listSheduledRuleIds();

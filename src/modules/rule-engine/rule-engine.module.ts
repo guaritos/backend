@@ -7,9 +7,11 @@ import { QueryEngineService } from './query-engine.service';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { ScheduleModule, SchedulerRegistry } from '@nestjs/schedule';
 import { RuleEngineController } from './rule-engine.controller';
+import { AlertEngineModule } from '../alert-engine/alert-engine.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [SupabaseModule, ScheduleModule.forRoot()],
+  imports: [SupabaseModule, AlertEngineModule, EmailModule, ScheduleModule.forRoot()],
   providers: [RuleEngineService, RuleService, RuleActionService, RuleSchedulerService, QueryEngineService],
   controllers: [RuleEngineController]
   

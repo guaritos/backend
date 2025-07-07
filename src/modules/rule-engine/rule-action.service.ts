@@ -1,12 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { RuleAction } from './types';
 import { RuleService } from './rule.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class RuleActionService {
-  constructor(private readonly service: RuleService) {}
+  constructor(
+    private readonly service: RuleService,
+    private readonly emailService: EmailService,
+  ) {}
 
-  async run(actions: RuleAction[], ruleId: string, context: any): Promise<void> {
+  async run(
+    actions: RuleAction[],
+    ruleId: string,
+    context: any,
+  ): Promise<void> {
     for (const action of actions) {
       switch (action.type) {
         case 'tag':
@@ -24,7 +32,7 @@ export class RuleActionService {
             const res = await fetch(action.url, {
               method: action.method || 'POST',
               headers: action.params?.headers || {},
-              body: action.params?.body
+              body: action.params?.body,
             });
             const resBody = await res.text();
             console.log(
@@ -37,6 +45,16 @@ export class RuleActionService {
           break;
         case 'email':
           console.log('EMAIL:', action.to, action.subject, action.body);
+          try {
+            await this.emailService.sendEmail(
+              action.to,
+              action.subject,
+              action.body,
+            );
+            console.log(`Email sent to ${action.to}`);
+          } catch (error) {
+            console.error(`Failed to send email to ${action.to}:`, error);
+          }
           break;
       }
     }

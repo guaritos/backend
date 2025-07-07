@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { RuleEngineService } from './rule-engine.service';
 import { RuleService } from './rule.service';
 import { RuleSchedulerService } from './rule-scheduler.service';
@@ -43,9 +43,41 @@ export class RuleEngineController {
     return this.ruleService.getRuleById(ruleId);
   }
 
+  @Post('rule')
+  async createRule(@Body() ruleData: any) {
+    const rule = await this.ruleService.createRule(ruleData);
+    this.scheduleService.registerCron(rule);
+    return rule;
+  }
+
+  @Put('rule/:id')
+  async updateRule(
+    @Param('id') ruleId: string,
+    @Body() ruleData: any,
+  ) {
+    try {
+      const updatedRule = await this.ruleService.updateRule(ruleId, ruleData);
+      this.scheduleService.registerCron(updatedRule);
+      return updatedRule;
+    } catch (error) {
+      console.error('Error updating rule:', error);
+      throw new Error(
+        `Failed to update rule with ID ${ruleId}: ${error.message}`,
+      );
+    }
+  }
+
   @Delete('rule/:id')
   async deleteRule(@Param('id') ruleId: string) {
-    await this.ruleService.deleteRule(ruleId);
+    try {
+      await this.ruleService.deleteRule(ruleId);
+      this.scheduleService.removeRule(ruleId);
+    } catch (error) {
+      console.error('Error deleting rule:', error);
+      throw new Error(
+        `Failed to delete rule with ID ${ruleId}: ${error.message}`,
+      );
+    }
     return { message: `Rule with ID ${ruleId} deleted.` };
   }
 

@@ -84,6 +84,8 @@ export class RuleService {
     return parsed;
   }
 
+  // TODO: Implement a method to return the rule's data source
+
   async loadData(): Promise<any[]> {
     const rows: any[] = [];
     await new Promise((resolve, reject) => {

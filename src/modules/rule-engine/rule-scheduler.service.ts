@@ -37,17 +37,18 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   }
 
   registerCron(rule: Rule) {
-    if (!rule.enabled) {
-      console.warn(`Rule ${rule.id} is disabled, skipping scheduling.`);
-      return;
-    }
-    const cron = rule.interval; // throw if invalid
+    const cron = rule.interval;
     const jobName = `rule-${rule.id}`;
 
     if (this.schedulerRegistry.doesExist('cron', jobName)) {
       this.schedulerRegistry.deleteCronJob(jobName);
     }
+    if (!rule.enabled) {
+      console.warn(`Rule ${rule.id} is disabled, skipping scheduling.`);
+      return;
+    }
 
+    // TODO: load the source data for the rule
     const job = new CronJob(cron, async () => {
       console.log(`[CRON] Executing rule: ${rule.id} ${rule.user_id}`);
       await this.engine.execute(rule, []);

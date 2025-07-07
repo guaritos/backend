@@ -1,5 +1,5 @@
 import { RuleAction } from '../types';
-import { AggregateCondition, Condition } from '../types/rule.type';
+import { Aggregate, AggregateCondition, Condition } from '../types/rule.type';
 
 export interface Rule {
   id: string;
@@ -8,8 +8,8 @@ export interface Rule {
   description?: string;
   source: string;
   interval: string;
-  when: Condition;
-  aggregate?: AggregateCondition;
+  when?: Condition;
+  aggregate?: Aggregate;
   then: RuleAction[];
   tags?: string[];
   enabled?: boolean;

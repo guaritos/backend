@@ -49,7 +49,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
     }
 
     const job = new CronJob(cron, async () => {
-      console.log(`[CRON] Executing rule: ${rule.name}`);
+      console.log(`[CRON] Executing rule: ${rule.id} ${rule.user_id}`);
       await this.engine.execute(rule, []);
     });
 

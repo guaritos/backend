@@ -6,11 +6,13 @@ import { ComparisonOp, PlainCondition } from './types/rule.type';
 import { QueryEngineService } from './query-engine.service';
 import { AlertEngineService } from '../alert-engine/alert-engine.service';
 import { filter } from 'rxjs';
+import { EventsGateway } from '../events/events.gateway';
+import { Alert } from '../alert-engine/interfaces';
 
 @Injectable()
 export class RuleEngineService {
   constructor(
-    private readonly loader: RuleService,
+    private readonly eventGateway: EventsGateway,
     private readonly action: RuleActionService,
     private readonly alertEngine: AlertEngineService,
     private readonly queryEngine: QueryEngineService,
@@ -32,7 +34,7 @@ export class RuleEngineService {
         `Rule ${rule.id} matched with ${filtered.length} items, executing actions...`,
       );
       try {
-        await this.alertEngine.createAlert({
+        const context = await this.alertEngine.createAlert({
           rule_id: rule.id,
           result: filtered,
           data: dataset,
@@ -40,6 +42,7 @@ export class RuleEngineService {
           status: 'pending',
           message: 'Alert triggered because rule condition matched',
         });
+        await this.notifyRuleTriggered(rule.user_id, rule.name, context);
       } catch (error) {
         console.error('Error creating alert:', error);
         throw new Error('Failed to create alert');
@@ -48,6 +51,13 @@ export class RuleEngineService {
     }
 
     return filtered;
+  }
+
+  async notifyRuleTriggered(userId: string, ruleName: string, context: Alert) {
+    this.eventGateway.sendEventToUser(userId, 'alert', {
+      title: `Rule "${ruleName}" has been triggered.`,
+      context,
+    });
   }
 
   // async queryConditionTree(condition: any, context: any): Promise<boolean> {

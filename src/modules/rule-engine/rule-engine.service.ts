@@ -17,7 +17,7 @@ export class RuleEngineService {
     private readonly alertEngine: AlertEngineService,
     private readonly queryEngine: QueryEngineService,
   ) {}
-
+  
   async execute(rule: Rule, dataset: any): Promise<any[]> {
     const { when } = rule;
     if (!when && !rule.aggregate) {

@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Aggregate, AggregateCondition, ComparisonOp, Condition } from './types/rule.type';
+import {
+  Aggregate,
+  AggregateCondition,
+  ComparisonOp,
+  Condition,
+} from './types/rule.type';
 
 @Injectable()
 export class QueryEngineService {
@@ -7,7 +12,8 @@ export class QueryEngineService {
     if (!condition) {
       return (items: any[]) => items;
     }
-    return (items: any[]) => items.filter(item => this.match(item, condition));
+    return (items: any[]) =>
+      items.filter((item) => this.match(item, condition));
   }
 
   compileAggregate(conditions: Aggregate): (items: any[]) => any[] {
@@ -16,13 +22,74 @@ export class QueryEngineService {
     }
     return (items: any[]) => {
       const results = this.matchAggregate(items, conditions);
-      return results.filter(r => Object.keys(r).length > 0);
+      return results.filter((r) => Object.keys(r).length > 0);
     };
+  }
+
+  getAllFields(obj: any, prefix = ''): { path: string; type: string }[] {
+    if (typeof obj !== 'object' || obj === null) return [];
+  
+    const paths: { path: string; type: string }[] = [];
+  
+    for (const key of Object.keys(obj)) {
+      const fullPath = prefix ? `${prefix}.${key}` : key;
+      const value = obj[key];
+  
+      if (Array.isArray(value)) {
+        const arrPath = `${fullPath}[]`;
+  
+        if (value.length === 0) {
+          paths.push({ path: arrPath, type: 'array' });
+        } else {
+          const first = value[0];
+  
+          if (typeof first === 'object' && first !== null) {
+            // Array of objects → recurse into first element
+            paths.push(...this.getAllFields(first, arrPath));
+          } else {
+            // Array of primitive
+            paths.push({ path: arrPath, type: typeof first });
+          }
+        }
+      } else if (typeof value === 'object' && value !== null) {
+        paths.push(...this.getAllFields(value, fullPath));
+      } else {
+        paths.push({ path: fullPath, type: typeof value });
+      }
+    }
+  
+    return paths;
+  }
+
+  getValueByPath(obj: any, path: string): any {
+    const parts = path.split('.');
+    let current = obj;
+
+    for (const part of parts) {
+      if (!current || typeof current !== 'object') {
+        return undefined; // Path not found
+      }
+
+      if (part.endsWith('[]')) {
+        const arrayKey = part.slice(0, -2);
+        current = current[arrayKey];
+
+        if (!Array.isArray(current)) return undefined;
+
+        const restPath = parts.slice(parts.indexOf(part) + 1).join('.');
+        return current
+          .map((item) => this.getValueByPath(item, restPath))
+          .flat();
+      } else {
+        current = current[part];
+      }
+    }
+    return current;
   }
 
   private matchAggregate(items: any[], cond: Aggregate): any[] {
     const failures: any[] = [];
-  
+
     if ('and' in cond) {
       for (const c of cond.and) {
         const subFailures = this.matchAggregate(items, c);
@@ -30,10 +97,10 @@ export class QueryEngineService {
       }
       return failures;
     }
-  
+
     if ('or' in cond) {
       const groupFailures: any[] = [];
-  
+
       for (const c of cond.or) {
         const subFailures = this.matchAggregate(items, c);
         if (subFailures.length === 0) {
@@ -42,11 +109,11 @@ export class QueryEngineService {
         }
         groupFailures.push(...subFailures);
       }
-  
+
       // none passed
       return groupFailures;
     }
-  
+
     if ('not' in cond) {
       for (const c of cond.not) {
         const subFailures = this.matchAggregate(items, c);
@@ -54,58 +121,73 @@ export class QueryEngineService {
           // if any condition matched, not fails
           failures.push({
             type: 'not',
-            message: 'Expected NOT to match but condition passed'
+            message: 'Expected NOT to match but condition passed',
           });
         }
       }
       return failures;
     }
-  
+
     // ----- Base aggregate condition -----
-    const values = items.map(i => i[cond.field]).filter(v => typeof v === 'number');
-  
+    const values = items
+      .map((i) => this.getValueByPath(i, cond.field))
+      .filter((v) => typeof v === 'number');
+
     if (values.length === 0) {
-      return [{
-        field: cond.field,
-        op: cond.op,
-        error: 'No numeric values'
-      }];
+      return [
+        {
+          field: cond.field,
+          op: cond.op,
+          error: 'No numeric values',
+        },
+      ];
     }
-  
+
     const agg = (() => {
       switch (cond.op) {
-        case 'sum': return values.reduce((a, b) => a + b, 0);
-        case 'count': return values.length;
-        case 'avg': return values.reduce((a, b) => a + b, 0) / values.length;
-        case 'min': return Math.min(...values);
-        case 'max': return Math.max(...values);
-        default: return NaN;
+        case 'sum':
+          return values.reduce((a, b) => a + b, 0);
+        case 'count':
+          return values.length;
+        case 'avg':
+          return values.reduce((a, b) => a + b, 0) / values.length;
+        case 'min':
+          return Math.min(...values);
+        case 'max':
+          return Math.max(...values);
+        default:
+          return NaN;
       }
     })();
-  
+
     const passed = this.compare(agg, cond.operator, cond.value);
-  
+
     if (!passed) {
-      return [{
-        field: cond.field,
-        op: cond.op,
-        operator: cond.operator,
-        expected: cond.value,
-        actual: agg
-      }];
+      return [
+        {
+          field: cond.field,
+          op: cond.op,
+          operator: cond.operator,
+          expected: cond.value,
+          actual: agg,
+        },
+      ];
     }
-  
+
     return [];
   }
 
   private match(item: any, condition: Condition): boolean {
-    if ('and' in condition) return condition.and.every(c => this.match(item, c));
-    if ('or' in condition) return condition.or.some(c => this.match(item, c));
-    if ('not' in condition) return condition.not.every(c => !this.match(item, c));
+    if ('and' in condition)
+      return condition.and.every((c) => this.match(item, c));
+    if ('or' in condition) return condition.or.some((c) => this.match(item, c));
+    if ('not' in condition)
+      return condition.not.every((c) => !this.match(item, c));
 
     switch (condition.type) {
       case 'plain':
-        return this.compare(item[condition.field], condition.operator, condition.value);
+        const value = this.getValueByPath(item, condition.field);
+        return this.compare(value, condition.operator, condition.value);
       case 'exists':
         const exists = item.hasOwnProperty(condition.field);
         return condition.operator === 'true' ? exists : !exists;
@@ -116,15 +198,24 @@ export class QueryEngineService {
 
   private compare(left: any, operator: ComparisonOp, right: any): boolean {
     switch (operator) {
-      case '>': return left > right;
-      case '>=': return left >= right;
-      case '<': return left < right;
-      case '<=': return left <= right;
-      case '=': return left === right;
-      case '!=': return left !== right;
-      case 'contains': return Array.isArray(left) && left.includes(right);
-      case 'not_contains': return Array.isArray(left) && !left.includes(right);
-      default: return false;
+      case '>':
+        return left > right;
+      case '>=':
+        return left >= right;
+      case '<':
+        return left < right;
+      case '<=':
+        return left <= right;
+      case '=':
+        return left === right;
+      case '!=':
+        return left !== right;
+      case 'contains':
+        return Array.isArray(left) && left.includes(right);
+      case 'not_contains':
+        return Array.isArray(left) && !left.includes(right);
+      default:
+        return false;
     }
   }
 }

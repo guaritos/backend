@@ -1,48 +1,47 @@
-- id: "rules_v1"
-  name: Detect Money Laundering
+- name: Detect Money Laundering
+  user_id: "user123"
   source: transactions
-  interval: 3600
+  interval: "* * * * * *"
 
   when:
     and:
-      - type: count
-        field: tx_count
+      - type: plain
+        field: address
+        operator: "="
+        value: "0xa160cdab225685da1d56aa342ad8841c3b53f291"
+
+      - type: plain
+        field: rank
         operator: ">"
-        value: 50
+        value: 0.15
 
-      - type: sum
-        field: value
-        operator: ">"
-        value: 1000000
+  #     - and:
+  #         - type: exists
+  #           field: path
+  #           operator: "true"
+  #         - type: plain
+  #           field: contract
+  #           value: "tornado"
+  #           operator: ">"
 
-      - and:
-          - type: exists
-            field: path
-            operator: "true"
-          - type: plain
-            field: contract
-            value: "tornado"
-            operator: ">"
+  #     - or:
+  #         - type: contains
+  #           field: contract
+  #           value: "tornado"
+  #         - type: contains
+  #           field: contract
+  #           value: "mixer"
 
-      - or:
-          - type: contains
-            field: contract
-            value: "tornado"
-          - type: contains
-            field: contract
-            value: "mixer"
+  # aggregate:
+  #   - type: count
+  #     field: tx_count
+  #     operator: ">"
+  #     value: 50
 
-  aggregate:
-    - type: count
-      field: tx_count
-      operator: ">"
-      value: 50
-
-    - type: sum
-      field: value
-      operator: ">"
-      value: 1000000
-
+  #   - type: sum
+  #     field: value
+  #     operator: ">"
+  #     value: 1000000
   then:
     - type: tag
       value: "Money Laundering"
@@ -51,3 +50,42 @@
     - type: mail
       to: ["compliance@example.com"]
       subject: "Alert: Money Laundering Detected"
+
+- name: Detect Fraudulent Transactions
+  user_id: "user123"
+  source: transactions 
+  interval: "* * * * * *"
+  when:
+    and:
+      - type: exists
+        field: address
+        operator: "true"
+
+  then:
+    - type: tag
+      value: "Fraud Alert"
+
+
+- name: Detect Fraudulent Bomba
+  user_id: "user123"
+  source: transactions 
+  interval: "* * * * * *"
+  when:
+    and:
+      - type: exists
+        field: rank
+        operator: "true"
+      - type: plain
+        field: rank
+        operator: ">"
+        value: 0.15
+
+  aggregate:
+    - type: sum
+      field: rank
+      operator: ">"
+      value: 0.25629205900245483
+    
+  then:
+    - type: tag
+      value: "Fraud Alert"

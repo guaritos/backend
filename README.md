@@ -1,99 +1,325 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🧠 Rule Engine Platform (NestJS + DSL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A powerful, extensible rule engine platform built with NestJS. This system evaluates custom-defined rules written in YAML/DSL to detect suspicious activity (e.g. Money Laundering, MEV Attacks, Rug Pulls) on transaction datasets. It supports real-time alerts via WebSocket, flexible actions like webhook/email, and persistent alert history.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- 🧩 Custom YAML/JSON DSL rule format
+- 🧠 Support for:
+  - `aggregate` conditions (`sum`, `count`, `avg`, etc.)
+  - `plain` field conditions
+  - `exists` checks
+  - Logical nesting: `and`, `or`, `not`
+- 🔁 Cron-based automatic rule evaluation (every rule has its own interval)
+- 📬 Webhook and Email actions (user-customizable templates)
+- 🧠 Alert history stored on match
+- 🌐 Real-time alert push via WebSocket
+- 🛠️ Unified parser for both YAML and JSON DSL
 
-## Project setup
+---
 
-```bash
-$ npm install
+## 📄 DSL Format (YAML or JSON)
+
+```yaml
+id: rule-ml-v1
+name: Detect Money Laundering
+interval: "1h"
+enabled: true
+when:
+  and:
+    - type: aggregate
+      field: value
+      op: sum
+      operator: ">"
+      value: 1000000
+
+    - type: plain
+      field: tx_count
+      operator: ">"
+      value: 50
+
+    - type: exists
+      field: suspicious_contract
+      operator: true
+aggregate:
+  - type: "aggregate"
+    field: "here"
+    op: "sum"
+    operator: ">"
+    value: 100
+  (if there's more, there must have and:, or: notation like "when" field)
+then:
+  - type: tag
+    value: "money-laundering"
+  - type: webhook
+    group: "default"
+    params:
+      headers:
+        X-API-Key: "your-api-key"
+      body: |
+        {
+          "alert": "{{rule.name}}",
+          "message": "{{context.message}}"
+        }
+  - type: email
+    to: "{{user.email}}"
+    subject: "🚨 Rule Triggered"
+    body: "Rule {{rule.name}} triggered on {{context.timestamp}}"
 ```
 
-## Compile and run the project
+## 🛠️ Engine Function Documentation
 
-```bash
-# development
-$ npm run start
+### Overview
+The engine function is the core component responsible for evaluating rules against transaction datasets. It processes rules defined in YAML/DSL format and triggers actions based on the evaluation results.
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
+### 🔧 Engine Workflow
+
+1. **Rule Parsing**:
+  - The engine parses rules written in YAML/DSL format into an internal representation.
+  - Supports logical operators (`and`, `or`, `not`) and condition types (`aggregate`, `plain`, `exists`).
+
+2. **Dataset Query**:
+  - The engine evaluates rules against incoming transaction datasets.
+  - Handles aggregate conditions (`sum`, `count`, `avg`) and field-specific checks.
+  - Return the data match
+
+3. **Action Execution**:
+  - Executes actions (`webhook`, `email`, `tag`) when rules are triggered.
+  - Supports user-defined templates for webhook and email actions.
+
+4. **Alert Management**:
+  - Stores alert history for triggered rules.
+  - Pushes real-time alerts via WebSocket.
+
+---
+
+### 🔍 Rule Evaluation Details
+
+#### Supported Condition Types:
+- **Aggregate**:
+  - Evaluates aggregate metrics like `sum`, `count`, `avg`.
+  - Example:
+   ```yaml
+   type: aggregate
+   field: value
+   op: sum
+   operator: ">"
+   value: 1000000
+   ```
+- **Plain**:
+  - Checks individual fields against a condition.
+  - Example:
+   ```yaml
+   type: plain
+   field: tx_count
+   operator: ">"
+   value: 50
+   ```
+- **Exists**:
+  - Verifies the existence of a field.
+  - Example:
+   ```yaml
+   type: exists
+   field: suspicious_contract
+   operator: true
+   ```
+
+#### Logical Operators:
+- **AND**: All conditions must be true.
+- **OR**: At least one condition must be true.
+- **NOT**: Negates the condition.
+
+---
+
+### 🔔 Actions
+
+#### Supported Actions:
+- **Webhook**:
+  - Sends HTTP requests to a specified endpoint.
+  - Example:
+   ```yaml
+   type: webhook
+   group: "default"
+   params:
+    headers:
+      X-API-Key: "your-api-key"
+    body: |
+      {
+       "alert": "{{rule.name}}",
+       "message": "{{context.message}}"
+      }
+   ```
+- **Email**:
+  - Sends email notifications.
+  - Example:
+   ```yaml
+   type: email
+   to: "{{user.email}}"
+   subject: "🚨 Rule Triggered"
+   body: "Rule {{rule.name}} triggered on {{context.timestamp}}"
+   ```
+- **Tag**:
+  - Tags transactions for further analysis.
+  - Example:
+   ```yaml
+   type: tag
+   value: "money-laundering"
+   ```
+
+---
+
+### 🕒 Cron-Based Rule Evaluation
+Each rule can have its own evaluation interval defined in the `interval` field. The engine automatically evaluates rules based on their intervals.
+
+Example:
+```yaml
+interval: "1h"
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+### 🌐 Real-Time Alerts
+The engine supports real-time alert notifications via WebSocket, enabling instant updates for triggered rules.
 
-# e2e tests
-$ npm run test:e2e
+---
 
-# test coverage
-$ npm run test:cov
+### 📦 Persistent Alert History
+Triggered alerts are stored in the system for future reference and analysis. This ensures traceability and auditability of rule evaluations.
+## 🌐 API Gateway Documentation
+
+### Base URL
+```
+http://<your-server-domain>/api
 ```
 
-## Deployment
+### Endpoints
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+#### 1. **Get All Rules**
+- **URL:** `/rules`
+- **Method:** `GET`
+- **Description:** Fetch all defined rules.
+- **Response:**
+  ```json
+  [
+    {
+      "id": "rule-ml-v1",
+      "name": "Detect Money Laundering",
+      "enabled": true,
+      "interval": "type cron"
+    },
+    ...
+  ]
+  ```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+#### 2. **Get Rule by ID**
+- **URL:** `/rules/{id}`
+- **Method:** `GET`
+- **Description:** Fetch a specific rule by its ID.
+- **Response:**
+  ```json
+  {
+    "id": "rule-ml-v1",
+    "name": "Detect Money Laundering",
+    "enabled": true,
+    "interval": "type cron",
+    "when": { ... },
+    "then": { ... }
+  }
+  ```
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+#### 3. **Create Rule**
+- **URL:** `/rule`
+- **Method:** `POST`
+- **Description:** Create a new rule.
+- **Request Body:**
+  ```json
+  {
+    "id": "rule-ml-v2",
+    "name": "New Rule",
+    "enabled": true,
+    "interval": "type cron",
+    "when": { ... },
+    "then": { ... }
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Rule created successfully",
+    "ruleId": "rule-ml-v2"
+  }
+  ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+#### 4. **Update Rule**
+- **URL:** `/rule/{id}`
+- **Method:** `PUT`
+- **Description:** Update an existing rule.
+- **Request Body:**
+  ```json
+  {
+    "name": "Updated Rule Name",
+    "enabled": false,
+    "interval": "cron",
+    "when": { ... },
+    "then": { ... }
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Rule updated successfully"
+  }
+  ```
 
-## Resources
+#### 5. **Delete Rule**
+- **URL:** `/rule/{id}`
+- **Method:** `DELETE`
+- **Description:** Delete a rule by its ID.
+- **Response:**
+  ```json
+  {
+    "message": "Rule deleted successfully"
+  }
+  ```
 
-Check out a few resources that may come in handy when working with NestJS:
+#### 6. **Get rules by user id**
+- **URL:** `/rules/{userId}`
+- **Method:** `GET`
+- **Description:** Get list of rule by user
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+#### 7. **Get Alert History**
+- **URL:** `/alerts`
+- **Method:** `GET`
+- **Description:** Fetch all alerts generated by rules.
+- **Response:**
+  ```json
+  [
+    {
+      "id": "alert-123",
+      "ruleId": "rule-ml-v1",
+      "timestamp": "2023-10-01T12:00:00Z",
+      "details": { ... }
+    },
+    ...
+  ]
+  ```
 
-## Support
+#### 8. **Get Alert by ID**
+- **URL:** `/alerts/{id}`
+- **Method:** `GET`
+- **Description:** Fetch details of a specific alert.
+- **Response:**
+  ```json
+  {
+    "id": "alert-123",
+    "ruleId": "rule-ml-v1",
+    "timestamp": "2023-10-01T12:00:00Z",
+    "details": { ... }
+  }
+  ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---

@@ -62,6 +62,7 @@ export class QueryEngineService {
   }
 
   getValueByPath(obj: any, path: string): any {
+    if (!path) return obj;
     const parts = path.split('.');
     let current = obj;
 
@@ -199,16 +200,22 @@ export class QueryEngineService {
   private compare(left: any, operator: ComparisonOp, right: any): boolean {
     switch (operator) {
       case '>':
+      case 'gt':
         return left > right;
       case '>=':
+      case 'gte':
         return left >= right;
       case '<':
+      case 'lt':
         return left < right;
       case '<=':
+      case 'lte':
         return left <= right;
       case '=':
+      case 'eq':
         return left === right;
       case '!=':
+      case 'ne':
         return left !== right;
       case 'contains':
         return Array.isArray(left) && left.includes(right);

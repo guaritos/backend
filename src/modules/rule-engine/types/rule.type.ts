@@ -26,12 +26,8 @@ export type PlainCondition = {
 
 export type AggregateOp = 'sum' | 'count' | 'avg' | 'min' | 'max';
 export type ComparisonOp =
-  | '>='
-  | '<='
-  | '>'
-  | '<'
-  | '='
-  | '!='
+  | '>=' | '<=' | '>' | '<' | '=' | '!='
+  | 'gte'| 'lte'| 'gt'| 'lt'| 'eq'| 'ne'
   | 'contains'
   | 'not_contains';
 export type ExistenceOp = 'true' | 'false';

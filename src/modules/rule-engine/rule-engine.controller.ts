@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { RuleEngineService } from './rule-engine.service';
 import { RuleService } from './rule.service';
 import { RuleSchedulerService } from './rule-scheduler.service';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('rule-engine')
 export class RuleEngineController {
@@ -11,6 +12,15 @@ export class RuleEngineController {
     private readonly scheduleService: RuleSchedulerService,
   ) {}
 
+  @ApiOperation({
+    summary: 'Test Rule Engine',
+    description: 'Endpoint to test the rule engine by executing rules and returning results.',
+    tags: ['rule-engine'],
+  })
+  /**
+   * Test endpoint to execute rules and return results.
+   * @returns {Promise<any[]>} An array of results from executing the rules.
+   */
   @Get('test')
   async testRuleEngine() {
     const rules = await this.ruleService.loadRules();
@@ -19,7 +29,7 @@ export class RuleEngineController {
     for (const rule of rules) {
       const ruleInsert = await this.ruleService.createRule(rule);
       console.log('Rule created:', ruleInsert);
-      const result = await this.ruleEngineService.execute(rule, data);
+      const result = await this.ruleEngineService.execute(ruleInsert, data);
       res.push({
         rule: ruleInsert,
         result: result,
@@ -28,22 +38,47 @@ export class RuleEngineController {
     return res;
   }
 
+  @ApiOperation({
+    summary: 'Get all rules',
+    description: 'Endpoint to retrieve all rules from the rule engine.',
+    tags: ['rules'],
+    responses: {
+      200: {
+        description: 'List of all rules',
+      }
+    }
+  })
   @Get('rules')
   async getRules() {
     return this.ruleService.getRules();
   }
 
-  @Get('rules/:userId')
+  @ApiOperation({
+    summary: 'Get rules by user ID',
+    description: 'Endpoint to retrieve rules associated with a specific user ID.',
+    tags: ['rules'],
+  })
+  @Get('rules/user/:userId')
   async getRulesByUserId(@Param('userId') userId: string) {
     return this.ruleService.getRulesByUserId(userId);
   }
 
-  @Get('rule/:id')
+  @ApiOperation({
+    summary: 'Get rule by ID',
+    description: 'Endpoint to retrieve a specific rule by its ID.',
+    tags: ['rules'],
+  })
+  @Get('rules/:id')
   async getRuleById(@Param('id') ruleId: string) {
     return this.ruleService.getRuleById(ruleId);
   }
 
-  @Post('rule')
+  @ApiOperation({
+    summary: 'Create a new rule',
+    description: 'Endpoint to create a new rule in the rule engine.',
+    tags: ['rules'],
+  })
+  @Post('rules')
   async createRule(@Body() ruleData: any) {
     const rule = await this.ruleService.createRule(ruleData);
     if (!rule) {
@@ -54,7 +89,12 @@ export class RuleEngineController {
     return rule;
   }
 
-  @Put('rule/:id')
+  @ApiOperation({
+    summary: 'Update an existing rule',
+    description: 'Endpoint to update an existing rule by its ID.',
+    tags: ['rules'],
+  })
+  @Put('rules/:id')
   async updateRule(
     @Param('id') ruleId: string,
     @Body() ruleData: any,
@@ -71,7 +111,12 @@ export class RuleEngineController {
     }
   }
 
-  @Delete('rule/:id')
+  @ApiOperation({
+    summary: 'Delete a rule',
+    description: 'Endpoint to delete a rule by its ID.',
+    tags: ['rules'],
+  })
+  @Delete('rules/:id')
   async deleteRule(@Param('id') ruleId: string) {
     try {
       await this.ruleService.deleteRule(ruleId);
@@ -85,13 +130,23 @@ export class RuleEngineController {
     return { message: `Rule with ID ${ruleId} deleted.` };
   }
 
-  @Get('cron')
+  @ApiOperation({
+    summary: 'Get scheduled cron rules',
+    description: 'Endpoint to retrieve all scheduled cron rules.',
+    tags: ['crons'],
+  })
+  @Get('crons')
   async getCronRules() {
     const rules = await this.scheduleService.listSheduledRuleIds();
     return rules;
   }
 
-  @Get('cron/:id')
+  @ApiOperation({
+    summary: 'Remove a scheduled rule',
+    description: 'Endpoint to remove a scheduled rule by its ID.',
+    tags: ['crons'],
+  })
+  @Get('crons/:id')
   async removeRule(@Param('id') ruleId: string) {
     await this.scheduleService.removeRule(ruleId);
     return { message: `Rule with ID ${ruleId} removed from scheduler.` };

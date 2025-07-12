@@ -1,5 +1,5 @@
-import { RuleAction } from '../types';
-import { Aggregate, AggregateCondition, Condition } from '../types/rule.type';
+import { RuleAction } from "../types";
+import { Condition, Aggregate } from "../types/rule.type";
 
 export interface Rule {
   id: string;

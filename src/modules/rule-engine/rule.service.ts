@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Rule } from './interfaces';
+import { CreateRuleDTO, UpdateRuleDTO } from './dtos';
+import { Rule } from './interfaces/rule.interfaces';
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -42,7 +43,7 @@ export class RuleService {
     return data || null;
   }
 
-  async createRule(rule: Rule): Promise<Rule> {
+  async createRule(rule: CreateRuleDTO): Promise<Rule> {
     const { data, error } = await this.supabase
       .from('rules')
       .insert(rule)
@@ -54,7 +55,7 @@ export class RuleService {
     return data[0];
   }
 
-  async updateRule(id: string, rule: Partial<Rule>): Promise<Rule> {
+  async updateRule(id: string, rule: UpdateRuleDTO): Promise<Rule> {
     const { data, error } = await this.supabase
       .from('rules')
       .update(rule)
@@ -75,7 +76,7 @@ export class RuleService {
     }
   }
 
-  async loadRules(): Promise<Rule[]> {
+  async loadRules(): Promise<CreateRuleDTO[]> {
     const file = fs.readFileSync(
       'src/modules/rule-engine/rules/rules.yaml',
       'utf8',

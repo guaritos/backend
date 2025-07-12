@@ -4,16 +4,24 @@ import { RuleService } from './rule.service';
 import { RuleEngineService } from './rule-engine.service';
 import { validateCron } from 'src/helpers/interval-time';
 import { CronJob } from 'cron';
-import cron from 'cron-validate';
+import * as fs from 'fs';
 import { Rule } from './interfaces';
 
 @Injectable()
 export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
+  private logPath = 'logs/cron.log';
+
   constructor(
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly loader: RuleService,
     private readonly engine: RuleEngineService,
   ) {
+    if (!fs.existsSync('logs')) {
+      fs.mkdirSync('logs');
+    }
+    if (!fs.existsSync(this.logPath)) {
+      fs.writeFileSync(this.logPath, '');
+    }
   }
 
   async onModuleInit() {
@@ -50,7 +58,10 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
 
     // TODO: load the source data for the rule
     const job = new CronJob(cron, async () => {
-      console.log(`[CRON] Executing rule: ${rule.id} ${rule.user_id}`);
+      fs.appendFileSync(
+        this.logPath,
+        `[${new Date().toLocaleString()}][CRON] Executing rule: (${rule.id}) (${rule.user_id}) ${rule.name}\n`,
+      );
       await this.engine.execute(rule, []);
     });
 
@@ -69,9 +80,9 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async listSheduledRuleIds(): Promise<string[]> {
-    const jobNames = this.schedulerRegistry.getCronJobs()
+    const jobNames = this.schedulerRegistry.getCronJobs();
     return Array.from(jobNames.keys())
-      .filter(name => name.startsWith('rule-'))
-      .map(name => name.replace('rule-', ''));
+      .filter((name) => name.startsWith('rule-'))
+      .map((name) => name.replace('rule-', ''));
   }
 }

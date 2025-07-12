@@ -81,6 +81,14 @@ export class RuleService {
     }
   }
 
+  async deleteAllRules(): Promise<void> {
+    const { error } = await this.supabase.from('rules').delete();
+    if (error) {
+      console.error('Error deleting all rules in Supabase:', error);
+      throw new Error('Failed to delete all rules');
+    }
+  }
+
   async loadRules(): Promise<CreateRuleDTO[]> {
     const file = fs.readFileSync(
       'src/modules/rule-engine/rules/rules.yaml',

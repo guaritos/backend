@@ -35,6 +35,7 @@ export class RuleEngineController {
         result: result,
       });
     }
+    await this.ruleService.deleteAllRules();
     return res;
   }
 

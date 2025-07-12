@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { RuleEngineService } from './rule-engine.service';
 import { RuleService } from './rule.service';
 import { RuleSchedulerService } from './rule-scheduler.service';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 
 @Controller('rule-engine')
 export class RuleEngineController {
@@ -42,11 +42,6 @@ export class RuleEngineController {
     summary: 'Get all rules',
     description: 'Endpoint to retrieve all rules from the rule engine.',
     tags: ['rules'],
-    responses: {
-      200: {
-        description: 'List of all rules',
-      }
-    }
   })
   @Get('rules')
   async getRules() {
@@ -77,6 +72,48 @@ export class RuleEngineController {
     summary: 'Create a new rule',
     description: 'Endpoint to create a new rule in the rule engine.',
     tags: ['rules'],
+  })
+  @ApiBody({
+    description: `Example YAML (paste into 'yaml' field):
+  \`\`\`yaml
+  id: rule-ml-v1
+  name: Detect Money Laundering
+  source: transactions // Not decided yet, will be loaded from the rule engine, maybe account address
+  interval: "1h" // Will be changed to cron later
+  enabled: true
+  when:
+    and:
+      - type: plain
+        field: value
+        operator: ">"
+        value: 1000000
+      - type: plain
+        field: type
+        operator: "=="
+        value: "transfer"
+  aggregate:
+    type: aggregate
+    field: value
+    op: sum
+    operator: ">"
+    value: 1000000
+  then:
+    - type: tag
+      value: "money-laundering"
+    - type: webhook
+      group: default
+      params:
+        headers:
+          X-API-Key: secret
+        body: |
+          {
+            "alert": "{{rule.name}}",
+            "message": "{{context.message}}"
+          }
+  tags:
+    - money-laundering
+  enabled: true
+  \`\`\``,
   })
   @Post('rules')
   async createRule(@Body() ruleData: any) {

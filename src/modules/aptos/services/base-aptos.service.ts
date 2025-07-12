@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
+import { Aptos, AptosConfig, ClientConfig, Network } from '@aptos-labs/ts-sdk';
+import { config } from 'dotenv';
+config();
 
 @Injectable()
 export abstract class BaseAptosService {
@@ -11,8 +13,15 @@ export abstract class BaseAptosService {
   constructor(protected configService: ConfigService) {
     const network = this.configService.get<Network>('APTOS_NETWORK', Network.MAINNET);
     const customIndexerUrl = this.configService.get<string>('APTOS_INDEXER_URL');
+    const clientConfig: ClientConfig = {
+      API_KEY: process.env.APTOS_BUILD_API_KEY
+    }
     
-    const config = new AptosConfig({ network });
+    const config = new AptosConfig({ 
+      network,
+      indexer: customIndexerUrl,
+      clientConfig
+    });
     this.aptos = new Aptos(config);
     this.indexerUrl = customIndexerUrl || this.getDefaultIndexerUrl(network);
     
@@ -40,6 +49,7 @@ export abstract class BaseAptosService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.APTOS_BUILD_API_KEY}`,
         },
         body: JSON.stringify({
           query,

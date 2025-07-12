@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -13,6 +13,7 @@ import { EmailModule } from './modules/email/email.module';
 import { AlertEngineModule } from './modules/alert-engine/alert-engine.module';
 import { EventsModule } from './modules/events/events.module';
 import { Aptos } from '@aptos-labs/ts-sdk';
+import { ApiLoggerMiddleware, YamlParserMiddleware } from './middlewares';
 
 @Module({
   imports: [
@@ -34,4 +35,11 @@ import { Aptos } from '@aptos-labs/ts-sdk';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule { 
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(YamlParserMiddleware)
+      .forRoutes('rule-engine')
+      .apply(ApiLoggerMiddleware)
+      .forRoutes('*')
+  }
+}

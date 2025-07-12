@@ -40,10 +40,15 @@ export class RuleService {
       .select('*')
       .eq('id', id)
       .single();
+    if (error) {
+      console.error('Error fetching rule by ID from Supabase:', error);
+      throw new Error('Failed to fetch rule by ID');
+    }
     return data || null;
   }
 
   async createRule(rule: CreateRuleDTO): Promise<Rule> {
+    console.log('Creating rule:', rule);
     const { data, error } = await this.supabase
       .from('rules')
       .insert(rule)

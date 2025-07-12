@@ -7,12 +7,18 @@ export class FungibleAssetMetadata {
 
   @Field({ nullable: true })
   project_uri?: string;
+
+  @Field()
+  symbol: string;
+
+  @Field()
+  name: string;
 }
 
 @ObjectType()
 export class FungibleAssetActivity {
   @Field()
-  amount: string;
+  amount: number;
 
   @Field()
   asset_type: string;
@@ -46,4 +52,11 @@ export class UserTransaction {
 
   @Field()
   entry_function_function_name: string;
+
+  @Field() version: number;
+  @Field() timestamp: string;
+  @Field() sender: string;
+  @Field() entry_function_id_str: string;
+  @Field() entry_function_module_name: string;
+
 }

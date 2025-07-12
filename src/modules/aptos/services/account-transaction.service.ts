@@ -67,32 +67,43 @@ export class AccountTransactionService extends BaseAptosService {
 
   private buildAccountTransactionQuery(): string {
     return `
-      query GetAccountTransactions($where: account_transactions_bool_exp, $limit: Int, $offset: Int) {
-        account_transactions(
-          where: $where
-          limit: $limit
-          offset: $offset
-        ) {
-          account_address
-          fungible_asset_activities {
-            amount
-            asset_type
-            entry_function_id_str
-            event_index
-            is_gas_fee
-            is_transaction_success
-            type
-            owner_address
-            metadata {
-              icon_uri
-              project_uri
-            }
-          }
-          user_transaction {
-            entry_function_contract_address
-            entry_function_function_name
-          }
+      query GetAccountTransactions(
+      $where: account_transactions_bool_exp, 
+      $limit: Int, 
+      $offset: Int
+      ) {
+      account_transactions(
+        where: $where
+        limit: $limit
+        offset: $offset
+      ) {
+        account_address
+        transaction_version
+        fungible_asset_activities {
+        amount
+        asset_type
+        owner_address
+        metadata {
+          symbol
+          name
         }
+        transaction_timestamp
+        transaction_version
+        type
+        is_gas_fee
+        is_frozen
+        is_transaction_success
+        }
+        user_transaction {
+        version
+        timestamp
+        sender
+        entry_function_id_str
+        entry_function_function_name
+        entry_function_contract_address
+        entry_function_module_name
+        }
+      }
       }
     `;
   }

@@ -38,7 +38,7 @@ export class AlertEngineService {
       .from('alerts')
       .select(`*, rules(*)`)
       .eq('id', id)
-      .single();
+      .maybeSingle();
     if (error) {
       console.error('Error fetching alert by ID from Supabase:', error);
       throw new Error('Failed to fetch alert by ID');

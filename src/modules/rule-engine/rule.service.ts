@@ -39,7 +39,7 @@ export class RuleService {
       .from('active_rules')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     if (error) {
       console.error('Error fetching rule by ID from Supabase:', error);
       throw new Error('Failed to fetch rule by ID');

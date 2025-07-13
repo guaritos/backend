@@ -82,7 +82,7 @@ export class RuleService {
   }
 
   async deleteAllRules(): Promise<void> {
-    const { error } = await this.supabase.from('rules').update({ deleted_at: new Date().toISOString() });
+    const { error } = await this.supabase.from('rules').update({ deleted_at: new Date().toISOString() }).is('deleted_at', null);
     if (error) {
       console.error('Error deleting all rules in Supabase:', error);
       throw new Error('Failed to delete all rules');

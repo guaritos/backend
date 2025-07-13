@@ -47,9 +47,10 @@
       value: "Money Laundering"
     - type: notify
       message: "Potential money laundering detected."
-    - type: mail
-      to: ["compliance@example.com"]
+    - type: email
+      to: ["22021217@vnu.edu.vn"]
       subject: "Alert: Money Laundering Detected"
+      body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
 
 - name: Detect Fraudulent Transactions
   user_id: "user123"

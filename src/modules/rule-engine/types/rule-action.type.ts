@@ -20,5 +20,4 @@ export type RuleAction =
       to: string;
       subject: string;
       body: string;
-      recipients?: string[];
     };

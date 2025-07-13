@@ -1,27 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { Resend } from 'resend';
-import { config } from 'dotenv';
-
-config();
+import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private resend: Resend;
+  constructor(
+    @Inject('EMAIL_TRANSPORTER')
+    private readonly transporter: nodemailer.Transporter,
+    private readonly configService: ConfigService,
+  ) {}
 
-  constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
-  }
-
-  async sendEmail(to: string, subject: string, html: string): Promise<void> {
-    const { data, error } = await this.resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: to,
-      subject: subject,
-      html: html,
+  async sendEmail(to: string, subject: string, body: string): Promise<void> {
+    const from = this.configService.get<string>('email.from');
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject,
+      html: body,
+    }, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Failed to send email');
+      }
     });
-    if (error) {
-      console.error('Error sending email:', error);
-      throw new Error('Failed to send email');
-    }
   }
 }

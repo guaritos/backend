@@ -1,20 +1,27 @@
 - name: Detect Money Laundering
   user_id: "user123"
-  source: transactions
-  interval: "* * * * * *"
-
+  source: "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12"
+  interval: "5 * * * * *"
   when:
     and:
       - type: plain
-        field: address
+        field: strategy_snap_shot_items.weighted_edges[].hash
         operator: "="
-        value: "0xa160cdab225685da1d56aa342ad8841c3b53f291"
+        value: "2304959"
 
       - type: plain
-        field: rank
+        field: strategy_snap_shot_items.weighted_edges[].weight
         operator: ">"
         value: 0.15
-
+  then:
+    - type: tag
+      value: "Money Laundering"
+    - type: notify
+      message: "Potential money laundering detected."
+    - type: email
+      to: ["22021217@vnu.edu.vn"]
+      subject: "Alert: Money Laundering Detected"
+      body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
   #     - and:
   #         - type: exists
   #           field: path
@@ -42,51 +49,51 @@
   #     field: value
   #     operator: ">"
   #     value: 1000000
-  then:
-    - type: tag
-      value: "Money Laundering"
-    - type: notify
-      message: "Potential money laundering detected."
-    - type: email
-      to: ["22021217@vnu.edu.vn"]
-      subject: "Alert: Money Laundering Detected"
-      body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
+#   then:
+#     - type: tag
+#       value: "Money Laundering"
+#     - type: notify
+#       message: "Potential money laundering detected."
+#     - type: email
+#       to: ["22021217@vnu.edu.vn"]
+#       subject: "Alert: Money Laundering Detected"
+#       body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
 
-- name: Detect Fraudulent Transactions
-  user_id: "user123"
-  source: transactions 
-  interval: "* * * * * *"
-  when:
-    and:
-      - type: exists
-        field: address
-        operator: "true"
+# - name: Detect Fraudulent Transactions
+#   user_id: "user123"
+#   source: transactions 
+#   interval: "* * * * * *"
+#   when:
+#     and:
+#       - type: exists
+#         field: address
+#         operator: "true"
 
-  then:
-    - type: tag
-      value: "Fraud Alert"
+#   then:
+#     - type: tag
+#       value: "Fraud Alert"
 
 
-- name: Detect Fraudulent Bomba
-  user_id: "user123"
-  source: transactions 
-  interval: "* * * * * *"
-  when:
-    and:
-      - type: exists
-        field: rank
-        operator: "true"
-      - type: plain
-        field: rank
-        operator: ">"
-        value: 0.15
+# - name: Detect Fraudulent Bomba
+#   user_id: "user123"
+#   source: transactions 
+#   interval: "* * * * * *"
+#   when:
+#     and:
+#       - type: exists
+#         field: rank
+#         operator: "true"
+#       - type: plain
+#         field: rank
+#         operator: ">"
+#         value: 0.15
 
-  aggregate:
-    - type: sum
-      field: rank
-      operator: ">"
-      value: 0.25629205900245483
+#   aggregate:
+#     - type: sum
+#       field: rank
+#       operator: ">"
+#       value: 0.25629205900245483
     
-  then:
-    - type: tag
-      value: "Fraud Alert"
+#   then:
+#     - type: tag
+#       value: "Fraud Alert"

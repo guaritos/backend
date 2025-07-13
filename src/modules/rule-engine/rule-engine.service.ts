@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, LoggerService } from '@nestjs/common';
 import { RuleService } from './rule.service';
 import { RuleActionService } from './rule-action.service';
 import { Rule } from './interfaces';
 import { ComparisonOp, PlainCondition } from './types/rule.type';
 import { QueryEngineService } from './query-engine.service';
 import { AlertEngineService } from '../alert-engine/alert-engine.service';
-import { filter } from 'rxjs';
 import { EventsGateway } from '../events/events.gateway';
+import { TracerEngineService } from '../tracer-engine/tracer-engine.service';
 import { Alert } from '../alert-engine/interfaces';
+import { normalizeDataset } from 'src/helpers/normalize-data';
+import * as fs from 'fs';
 
 @Injectable()
 export class RuleEngineService {
@@ -16,8 +18,27 @@ export class RuleEngineService {
     private readonly action: RuleActionService,
     private readonly alertEngine: AlertEngineService,
     private readonly queryEngine: QueryEngineService,
+    private readonly tracerEngine: TracerEngineService,
   ) {}
-  
+
+  async runRule(rule: Rule): Promise<any[]> {
+    try {
+      const dataset = await this.tracerEngine.traceByAddress(rule.source);
+      const normalizedDataset = normalizeDataset(dataset);
+      fs.writeFileSync(
+        `./logs/${rule.id}-dataset.json`,
+        JSON.stringify(normalizedDataset, null, 2),
+      );
+      return await this.execute(rule, normalizeDataset);
+    } catch (error) {
+      console.error(`Error running rule ${rule.id}:`, error);
+      this.eventGateway.sendEventToUser(rule.user_id, 'error', {
+        title: `Error running rule "${rule.name}"`,
+        message: `${error.message}`,
+      });
+    }
+  }
+
   async execute(rule: Rule, dataset: any): Promise<any[]> {
     const { when } = rule;
     if (!when && !rule.aggregate) {
@@ -53,7 +74,11 @@ export class RuleEngineService {
     return filtered;
   }
 
-  async notifyRuleTriggered(userId: string, ruleName: string, context: Alert) {
+  private async notifyRuleTriggered(
+    userId: string,
+    ruleName: string,
+    context: Alert,
+  ) {
     this.eventGateway.sendEventToUser(userId, 'alert', {
       title: `Rule "${ruleName}" has been triggered.`,
       context,

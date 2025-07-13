@@ -29,7 +29,7 @@ export class RuleEngineController {
     for (const rule of rules) {
       const ruleInsert = await this.ruleService.createRule(rule);
       console.log('Rule created:', ruleInsert);
-      const result = await this.ruleEngineService.execute(ruleInsert, data);
+      const result = await this.ruleEngineService.runRule(ruleInsert);
       res.push({
         rule: ruleInsert,
         result: result,

@@ -4,6 +4,10 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,PUT,POST,DELETE',
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Guaritos API')

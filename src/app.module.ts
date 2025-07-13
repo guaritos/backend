@@ -14,6 +14,7 @@ import { AlertEngineModule } from './modules/alert-engine/alert-engine.module';
 import { EventsModule } from './modules/events/events.module';
 import { Aptos } from '@aptos-labs/ts-sdk';
 import { ApiLoggerMiddleware, YamlParserMiddleware } from './middlewares';
+import { TracerEngineModule } from './modules/tracer-engine/tracer-engine.module';
 import emailConfig from './config/email.config';
 import supabaseConfig from './config/supabase.config';
 

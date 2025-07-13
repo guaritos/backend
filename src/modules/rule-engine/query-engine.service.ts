@@ -12,6 +12,7 @@ export class QueryEngineService {
     if (!condition) {
       return (items: any[]) => items;
     }
+    
     return (items: any[]) =>
       items.filter((item) => this.match(item, condition));
   }

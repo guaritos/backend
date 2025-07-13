@@ -22,6 +22,7 @@
   "dependencies": {
     "@apollo/server": "^4.12.2",
     "@aptos-labs/ts-sdk": "^3.1.2",
+    "@guaritos/tracer-engine": "^1.0.8",
     "@nestjs/apollo": "^12.2.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.2",

@@ -14,7 +14,7 @@ export class RuleService {
   ) {}
 
   async getRules(): Promise<Rule[]> {
-    const { data, error } = await this.supabase.from('rules').select('*');
+    const { data, error } = await this.supabase.from('active_rules').select('*');
     if (error) {
       console.error('Error fetching rules from Supabase:', error);
       throw new Error('Failed to fetch rules');
@@ -24,7 +24,7 @@ export class RuleService {
 
   async getRulesByUserId(userId: string): Promise<Rule[]> {
     const { data, error } = await this.supabase
-      .from('rules')
+      .from('active_rules')
       .select('*')
       .eq('user_id', userId);
     if (error) {
@@ -36,7 +36,7 @@ export class RuleService {
 
   async getRuleById(id: string): Promise<Rule | null> {
     const { data, error } = await this.supabase
-      .from('rules')
+      .from('active_rules')
       .select('*')
       .eq('id', id)
       .single();
@@ -74,7 +74,7 @@ export class RuleService {
   }
 
   async deleteRule(id: string): Promise<void> {
-    const { error } = await this.supabase.from('rules').delete().eq('id', id);
+    const { error } = await this.supabase.from('rules').update({ deleted_at: new Date().toISOString() }).eq('id', id);
     if (error) {
       console.error('Error deleting rule in Supabase:', error);
       throw new Error('Failed to delete rule');
@@ -82,7 +82,7 @@ export class RuleService {
   }
 
   async deleteAllRules(): Promise<void> {
-    const { error } = await this.supabase.from('rules').delete();
+    const { error } = await this.supabase.from('rules').update({ deleted_at: new Date().toISOString() });
     if (error) {
       console.error('Error deleting all rules in Supabase:', error);
       throw new Error('Failed to delete all rules');

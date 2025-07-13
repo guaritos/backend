@@ -32,12 +32,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleEvent(
     @MessageBody() userId: string,
     @ConnectedSocket() client: Socket,
-  ): void {
+  ): string {
     client.join(userId);
+    return "Subscribed to user events";
   }
 
   sendEventToUser(userId: string, event: string, data: any): void {
     this.server.to(userId).emit(event, data);
-    console.log(`Event sent to user ${userId}:`, event, data);
+    console.log(`Event sent to user ${userId}:`, event);
   }
 }

@@ -55,8 +55,13 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
     if (this.schedulerRegistry.doesExist('cron', jobName)) {
       this.schedulerRegistry.deleteCronJob(jobName);
     }
+    
     if (!rule.enabled) {
       console.warn(`Rule ${rule.id} is disabled, skipping scheduling.`);
+      return;
+    }
+    if (rule.is_template) {
+      console.warn(`Rule ${rule.id} is a template, skipping scheduling.`);
       return;
     }
 

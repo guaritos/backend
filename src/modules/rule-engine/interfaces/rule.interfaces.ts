@@ -13,4 +13,5 @@ export interface Rule {
   then: RuleAction[];
   tags?: string[];
   enabled?: boolean;
+  is_template?: boolean;
 }

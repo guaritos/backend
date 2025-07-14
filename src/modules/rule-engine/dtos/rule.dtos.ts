@@ -82,6 +82,15 @@ export class CreateRuleDTO {
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the rule is a template',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  is_template?: boolean;
 }
 
 

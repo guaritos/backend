@@ -23,13 +23,15 @@ export class RuleEngineService {
 
   async runRule(rule: Rule): Promise<any[]> {
     try {
+      // const dataset = JSON.parse(fs.readFileSync(`./logs/76-dataset.json`, 'utf-8'));
+      // const dataset = JSON.parse(fs.readFileSync(`tracer-result-liquidswap-v0.json`, 'utf-8'));
       const dataset = await this.tracerEngine.traceByAddress(rule.source);
-      const normalizedDataset = normalizeDataset(dataset);
-      fs.writeFileSync(
-        `./logs/${rule.id}-dataset.json`,
-        JSON.stringify(normalizedDataset, null, 2),
-      );
-      return await this.execute(rule, normalizeDataset);
+      // const normalizedDataset = normalizeDataset(dataset);
+      // fs.writeFileSync(
+      //   `./logs/${rule.id}-dataset.json`,
+      //   JSON.stringify(normalizedDataset, null, 2),
+      // );
+      return await this.execute(rule, dataset);
     } catch (error) {
       console.error(`Error running rule ${rule.id}:`, error);
       this.eventGateway.sendEventToUser(rule.user_id, 'error', {
@@ -39,7 +41,7 @@ export class RuleEngineService {
     }
   }
 
-  async execute(rule: Rule, dataset: any): Promise<any[]> {
+  async execute(rule: Rule, dataset: any): Promise<any> {
     const { when } = rule;
     if (!when && !rule.aggregate) {
       throw new Error(
@@ -47,17 +49,17 @@ export class RuleEngineService {
       );
     }
 
-    const filtered = this.queryEngine.compile(when)(dataset);
-    const agg = this.queryEngine.compileAggregate(rule.aggregate)(filtered);
-
-    if (filtered.length > 0 && agg.length > 0) {
-      console.log(
-        `Rule ${rule.id} matched with ${filtered.length} items, executing actions...`,
-      );
+    const queryResult = this.queryEngine.compile(when)(dataset);
+    const aggregateResult = this.queryEngine.compileAggregate(rule.aggregate)(dataset);
+    if (queryResult.length > 0 && aggregateResult.length > 0) {
+      const result = {
+        queryResult,
+        aggregateResult,
+      }
       try {
         const context = await this.alertEngine.createAlert({
           rule_id: rule.id,
-          result: filtered,
+          result: result,
           data: dataset,
           actions_fired: [],
           status: 'pending',
@@ -68,10 +70,13 @@ export class RuleEngineService {
         console.error('Error creating alert:', error);
         throw new Error('Failed to create alert');
       }
-      await this.action.run(rule.then, rule.id, filtered);
+      await this.action.run(rule.then, rule.id, result);
     }
 
-    return filtered;
+    return {
+      queryResult,
+      aggregateResult,
+    };
   }
 
   private async notifyRuleTriggered(

@@ -5,24 +5,39 @@ import {
   ComparisonOp,
   Condition,
 } from './types/rule.type';
+import { TraceResult } from '@guaritos/tracer-engine';
+import { isArray } from 'class-validator';
 
 @Injectable()
 export class QueryEngineService {
-  compile(condition: Condition): (items: any[]) => any[] {
+  compile(condition: Condition): (item: any) => any[] {
     if (!condition) {
-      return (items: any[]) => items;
+      return (item: any) => [];
     }
     
-    return (items: any[]) =>
-      items.filter((item) => this.match(item, condition));
+    return (item: any) => {
+      if (Array.isArray(item)) {
+        return item.map((i) => this.match(i, condition)).filter(Boolean);
+      } else {
+        const result = this.match(item, condition);
+        return result ? result : [];
+      }
+    };
+    // return (item: TraceResult) => {
+    //   const item1 = Object.keys(item.strategy_snap_shot_items).filter(
+    //     (i) => this.match(i, condition))
+    //   const item2 = Object.keys(item.rank_items).filter(
+    //     (i) => this.match(item.rank_items[i], condition))
+    //   return [...item1, ...item2];
+    // }
   }
 
-  compileAggregate(conditions: Aggregate): (items: any[]) => any[] {
+  compileAggregate(conditions: Aggregate): (item: any) => any[] {
     if (!conditions) {
-      return (items: any[]) => items;
+      return (item: any) => [];
     }
-    return (items: any[]) => {
-      const results = this.matchAggregate(items, conditions);
+    return (item: any) => {
+      const results = this.matchAggregate(item, conditions);
       return results.filter((r) => Object.keys(r).length > 0);
     };
   }
@@ -89,8 +104,17 @@ export class QueryEngineService {
     return current;
   }
 
-  private matchAggregate(items: any[], cond: Aggregate): any[] {
+  private matchAggregate(items: any, cond: Aggregate): any[] {
+    // console.log("Matching aggregate condition:", cond);
     const failures: any[] = [];
+  
+    if (isArray(cond)) {
+      for (const c of cond) {
+        const subFailures = this.matchAggregate(items, c);
+        failures.push(...subFailures);
+      }
+      return failures;
+    }
 
     if ('and' in cond) {
       for (const c of cond.and) {
@@ -99,28 +123,26 @@ export class QueryEngineService {
       }
       return failures;
     }
-
+  
     if ('or' in cond) {
       const groupFailures: any[] = [];
-
+  
       for (const c of cond.or) {
         const subFailures = this.matchAggregate(items, c);
         if (subFailures.length === 0) {
-          // one sub-rule passed -> return no failure
+          // One sub-rule passed
           return [];
         }
         groupFailures.push(...subFailures);
       }
-
-      // none passed
-      return groupFailures;
+  
+      return groupFailures; // None passed
     }
-
+  
     if ('not' in cond) {
       for (const c of cond.not) {
         const subFailures = this.matchAggregate(items, c);
         if (subFailures.length === 0) {
-          // if any condition matched, not fails
           failures.push({
             type: 'not',
             message: 'Expected NOT to match but condition passed',
@@ -129,22 +151,32 @@ export class QueryEngineService {
       }
       return failures;
     }
-
-    // ----- Base aggregate condition -----
-    const values = items
-      .map((i) => this.getValueByPath(i, cond.field))
-      .filter((v) => typeof v === 'number');
-
+  
+    // ---------- Base aggregate condition ----------
+    // This version assumes `items` is a **top-level object**, not a flat array.
+    // We extract the value by path (must resolve to array of numbers)
+  
+    const extracted = this.getValueByPath(items, cond.field);
+    // console.log("Extracted value for field:", cond.field, "is", extracted);
+    let values: number[] = [];
+  
+    if (Array.isArray(extracted)) {
+      values = extracted;
+    } else if (typeof extracted === 'number') {
+      values = [extracted];
+    }
+  
     if (values.length === 0) {
       return [
         {
           field: cond.field,
           op: cond.op,
+          operator: cond.operator,
           error: 'No numeric values',
         },
       ];
     }
-
+  
     const agg = (() => {
       switch (cond.op) {
         case 'sum':
@@ -161,10 +193,10 @@ export class QueryEngineService {
           return NaN;
       }
     })();
-
+  
     const passed = this.compare(agg, cond.operator, cond.value);
-
-    if (!passed) {
+    // console.log("Condition:", cond, "Aggregate value:", agg, "Passed:", passed);
+    if (passed) {
       return [
         {
           field: cond.field,
@@ -175,26 +207,59 @@ export class QueryEngineService {
         },
       ];
     }
-
+  
     return [];
   }
+  
 
-  private match(item: any, condition: Condition): boolean {
-    if ('and' in condition)
-      return condition.and.every((c) => this.match(item, c));
-    if ('or' in condition) return condition.or.some((c) => this.match(item, c));
-    if ('not' in condition)
-      return condition.not.every((c) => !this.match(item, c));
-
+  private match(item: any, condition: Condition): any | null {
+    if ('and' in condition) {
+      const results = condition.and.map((c) => this.match(item, c)).filter(Boolean);
+      return results.length === condition.and.length ? results : null;
+    }
+  
+    if ('or' in condition) {
+      const results = condition.or.map((c) => this.match(item, c)).filter(Boolean);
+      return results.length > 0 ? results : null;
+    }
+  
+    if ('not' in condition) {
+      const results = condition.not.map((c) => this.match(item, c)).filter(Boolean);
+      return results.length === 0 ? { not: true } : null;
+    }
+  
     switch (condition.type) {
-      case 'plain':
+      case 'plain': {
         const value = this.getValueByPath(item, condition.field);
-        return this.compare(value, condition.operator, condition.value);
-      case 'exists':
+        const values = Array.isArray(value) ? value : [value];
+  
+        const matched = values.filter((v) =>
+          this.compare(v, condition.operator, condition.value),
+        );
+  
+        if (matched.length > 0) {
+          return {
+            field: condition.field,
+            operator: condition.operator,
+            expected: condition.value,
+            matched,
+          };
+        }
+  
+        return null;
+      }
+  
+      case 'exists': {
         const exists = item.hasOwnProperty(condition.field);
-        return condition.operator === 'true' ? exists : !exists;
+        const passed = condition.operator === 'true' ? exists : !exists;
+  
+        return passed
+          ? { field: condition.field, exists }
+          : null;
+      }
+  
       default:
-        return false;
+        return null;
     }
   }
 

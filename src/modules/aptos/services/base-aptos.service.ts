@@ -43,7 +43,7 @@ export abstract class BaseAptosService {
 
   protected async executeGraphQLQuery<T>(query: string, variables?: any): Promise<T> {
     try {
-      this.logger.debug('Executing GraphQL query', { query, variables });
+      // this.logger.debug('Executing GraphQL query', { query, variables });
       
       const response = await fetch(this.indexerUrl, {
         method: 'POST',

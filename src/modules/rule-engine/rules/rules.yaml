@@ -13,6 +13,17 @@
         field: strategy_snap_shot_items.weighted_edges[].weight
         operator: ">"
         value: 0.15
+  aggregate:
+    - type: aggregate
+      field: strategy_snap_shot_items.weighted_edges[].weight
+      op: sum
+      operator: ">"
+      value: 0.25629205900245483
+    - type: aggregate
+      field: strategy_snap_shot_items.weighted_edges[].hash
+      op: count
+      operator: ">"
+      value: 50
   then:
     - type: tag
       value: "Money Laundering"

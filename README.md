@@ -194,6 +194,23 @@ The engine supports real-time alert notifications via WebSocket, enabling instan
 
 ### 📦 Persistent Alert History
 Triggered alerts are stored in the system for future reference and analysis. This ensures traceability and auditability of rule evaluations.
+
+
+
+## 🔌 Socket Connection Document
+
+#### Prerequisites:
+- **User ID**: Required to establish a connection.
+
+#### Event Types:
+1. **Alert**:
+  - Triggered when a rule matches and generates an alert.
+
+2. **Error**:
+  - Occurs in the following scenarios:
+    - **Misconfigured Rule**: The rule is not supported or improperly defined.
+    - **Execution Issue**: An error occurred while running the rule.
+
 ## 🌐 API Gateway Documentation
 
 ### Base URL

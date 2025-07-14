@@ -3,6 +3,7 @@
 A powerful, extensible rule engine platform built with NestJS. This system evaluates custom-defined rules written in YAML/DSL to detect suspicious activity (e.g. Money Laundering, MEV Attacks, Rug Pulls) on transaction datasets. It supports real-time alerts via WebSocket, flexible actions like webhook/email, and persistent alert history.
 
 ---
+
 ## 🌐 Deployment
 
 The Rule Engine Platform is deployed and accessible via the following link:
@@ -28,51 +29,102 @@ The Rule Engine Platform is deployed and accessible via the following link:
 ## 📄 DSL Format (YAML or JSON)
 
 ```yaml
-id: rule-ml-v1
-name: Detect Money Laundering
-interval: "1h"
-enabled: true
-when:
-  and:
-    - type: aggregate
-      field: value
-      op: sum
-      operator: ">"
-      value: 1000000
+- name: Detect Money Laundering
+  user_id: 'user123'
+  source: '0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12'
+  interval: '5 * * * * *'
+  when:
+    and:
+      - type: plain
+        field: strategy_snap_shot_items.weighted_edges[].hash
+        operator: '='
+        value: '2304959'
 
-    - type: plain
-      field: tx_count
-      operator: ">"
+      - type: plain
+        field: strategy_snap_shot_items.weighted_edges[].weight
+        operator: '>'
+        value: 0.15
+
+      - type: plain
+        field: strategy_snap_shot_items.r.key
+        operator: 'eq'
+        value: '0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12'
+
+      - type: plain
+        field: strategy_snap_shot_items.weighted_edges[]
+        operator: 'not_containsa'
+        value: 'APT_0x1::aptos_coin::AptosCoin'
+
+  aggregate:
+    - type: aggregate
+      field: strategy_snap_shot_items.weighted_edges[].weight
+      op: sum
+      operator: '>'
+      value: 0.25629205900245483
+    - type: aggregate
+      field: strategy_snap_shot_items.weighted_edges[].hash
+      op: count
+      operator: '>'
       value: 50
 
-    - type: exists
-      field: suspicious_contract
-      operator: true
-aggregate:
-  - type: "aggregate"
-    field: "here"
-    op: "sum"
-    operator: ">"
-    value: 100
-  (if there's more, there must have and:, or: notation like "when" field)
-then:
-  - type: tag
-    value: "money-laundering"
-  - type: webhook
-    group: "default"
-    params:
-      headers:
-        X-API-Key: "your-api-key"
-      body: |
-        {
-          "alert": "{{rule.name}}",
-          "message": "{{context.message}}"
-        }
-  - type: email
-    to: "{{user.email}}"
-    subject: "🚨 Rule Triggered"
-    body: "Rule {{rule.name}} triggered on {{context.timestamp}}"
+  then:
+    - type: tag
+      value: 'Money Laundering'
+    - type: notify
+      message: 'Potential money laundering detected.'
+    - type: email
+      to: ['22021217@vnu.edu.vn']
+      subject: 'Alert: Money Laundering Detected'
+      body: '<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>'
 ```
+
+#### When:
+Base condition for query
+| Condition Type | Description                     |   Field use  | Operator Examples       |
+|----------------|---------------------------------|--------------|-------------------------|
+| Plain          | Normal field comparison         | ``operator`` | `=`, `!=`, `<`, `>`, `<=`, `>=` |
+| Exists         | Boolean field existence check   | ``operator`` | `true`, `false`         |
+
+
+---
+| Field Type       | Description                                      | Example                       |
+|------------------|--------------------------------------------------|-------------------------------|
+| Primitive/Object | Represents a single value or a nested object     | `field.a`                     |
+| Array            | Represents a list of values/objects              | `field[]`                     |
+| In Array         | Represents a specific field within an array      | `field[].b`                   |
+| Key/Value        | Represents key-value pairs in array-like objects | `field.key`, `field.value`    |
+
+---
+| Operator                             | Description                           |
+|--------------------------------------|---------------------------------------|
+| `<=`, `>=`, `<`, `>`, `=`, `!=`      | Base comparison operators             |
+| `lte`, `gte`, `lt`, `gt`, `eq`, `ne` | Alternative base comparison operators |
+| `contains`                           | Compares partial object               |
+| `not_contains`                       | Compares partial object (negated)     |
+
+| Value Type | Description                                                                 |
+|------------|-----------------------------------------------------------------------------|
+| Object     | Used with operators `contains`, `not_contains`, `eq`, or `ne`.                             |
+| Primitive  | Used with other operators such as `=`, `!=`, `<`, `>`, `<=`, `>=`.         |
+
+#### Aggregate:
+If no and:/or: notation, auto assume it is and
+
+Supports operations such as `sum`, `min`, `max`, `count`, and `avg`.
+
+````yaml
+aggregate:
+    - type: aggregate
+      field: strategy_snap_shot_items.weighted_edges[].weight
+      op: sum
+      operator: ">"
+      value: 0.25629205900245483
+    - type: aggregate
+      field: strategy_snap_shot_items.weighted_edges[].hash
+      op: count
+      operator: ">"
+      value: 50
+````
 
 ## 🛠️ Engine Function Documentation
 
@@ -114,26 +166,28 @@ The engine function is the core component responsible for evaluating rules again
    op: sum
    operator: ">"
    value: 1000000
-   ```
+````
+
 - **Plain**:
   - Checks individual fields against a condition.
   - Example:
-   ```yaml
-   type: plain
-   field: tx_count
-   operator: ">"
-   value: 50
-   ```
+  ```yaml
+  type: plain
+  field: tx_count
+  operator: '>'
+  value: 50
+  ```
 - **Exists**:
   - Verifies the existence of a field.
   - Example:
-   ```yaml
-   type: exists
-   field: suspicious_contract
-   operator: true
-   ```
+  ```yaml
+  type: exists
+  field: suspicious_contract
+  operator: true
+  ```
 
 #### Logical Operators:
+
 - **AND**: All conditions must be true.
 - **OR**: At least one condition must be true.
 - **NOT**: Negates the condition.
@@ -143,77 +197,85 @@ The engine function is the core component responsible for evaluating rules again
 ### 🔔 Actions
 
 #### Supported Actions:
+
 - **Webhook**:
   - Sends HTTP requests to a specified endpoint.
   - Example:
-   ```yaml
-   type: webhook
-   group: "default"
-   params:
+  ```yaml
+  type: webhook
+  group: 'default'
+  params:
     headers:
-      X-API-Key: "your-api-key"
+      X-API-Key: 'your-api-key'
     body: |
       {
        "alert": "{{rule.name}}",
        "message": "{{context.message}}"
       }
-   ```
+  ```
 - **Email**:
   - Sends email notifications.
   - Example:
-   ```yaml
-   type: email
-   to: "{{user.email}}"
-   subject: "🚨 Rule Triggered"
-   body: "Rule {{rule.name}} triggered on {{context.timestamp}}"
-   ```
+  ```yaml
+  type: email
+  to: '{{user.email}}'
+  subject: '🚨 Rule Triggered'
+  body: 'Rule {{rule.name}} triggered on {{context.timestamp}}'
+  ```
 - **Tag**:
   - Tags transactions for further analysis.
   - Example:
-   ```yaml
-   type: tag
-   value: "money-laundering"
-   ```
+  ```yaml
+  type: tag
+  value: 'money-laundering'
+  ```
 
 ---
 
 ### 🕒 Cron-Based Rule Evaluation
+
 Each rule can have its own evaluation interval defined in the `interval` field. The engine automatically evaluates rules based on their intervals.
 
 Example:
+
 ```yaml
-interval: "* * * * * *"
+interval: '* * * * * *'
 ```
 
 ---
 
 ### 🌐 Real-Time Alerts
+
 The engine supports real-time alert notifications via WebSocket, enabling instant updates for triggered rules.
 
 ---
 
 ### 📦 Persistent Alert History
+
 Triggered alerts are stored in the system for future reference and analysis. This ensures traceability and auditability of rule evaluations.
-
-
 
 ## 🔌 Socket Connection Document
 
 #### Prerequisites:
+
 - **User ID**: Required to establish a connection.
 
 #### Event Types:
+
 1. **Alert**:
-  - Triggered when a rule matches and generates an alert.
+
+- Triggered when a rule matches and generates an alert.
 
 2. **Error**:
-  - Occurs in the following scenarios:
-    - **Misconfigured Rule**: The rule is not supported or improperly defined.
-    - **Execution Issue**: An error occurred while running the rule.
+
+- Occurs in the following scenarios:
+  - **Misconfigured Rule**: The rule is not supported or improperly defined.
+  - **Execution Issue**: An error occurred while running the rule.
 
 ## 🌐 API Gateway Documentation
 
 ### Base URL
+
 ```
 backend-production-bdf7.up.railway.app
 ```
@@ -221,11 +283,13 @@ backend-production-bdf7.up.railway.app
 ### Endpoints
 
 #### **Docs**
+
 ```
 backend-production-bdf7.up.railway.app/api
 ```
 
 #### 1. **Get All Rules**
+
 - **URL:** `rule-engine/rules`
 - **Method:** `GET`
 - **Description:** Fetch all defined rules.
@@ -243,6 +307,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 2. **Get Rule by ID**
+
 - **URL:** `rule-engine/rules/{id}`
 - **Method:** `GET`
 - **Description:** Fetch a specific rule by its ID.
@@ -259,6 +324,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 3. **Create Rule**
+
 - **URL:** `rule-engine/rules`
 - **Method:** `POST`
 - **Description:** Create a new rule.
@@ -282,6 +348,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 4. **Update Rule**
+
 - **URL:** `rule-engine/rules/{id}`
 - **Method:** `PUT`
 - **Description:** Update an existing rule.
@@ -303,6 +370,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 5. **Delete Rule**
+
 - **URL:** `rule-engine/rules/{id}`
 - **Method:** `DELETE`
 - **Description:** Delete a rule by its ID.
@@ -314,11 +382,13 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 6. **Get rules by user id**
+
 - **URL:** `rule-engine/rules/user/{userId}`
 - **Method:** `GET`
 - **Description:** Get list of rule by user
 
 #### 7. **Get Alert History**
+
 - **URL:** `alert-engine/alerts`
 - **Method:** `GET`
 - **Description:** Fetch all alerts generated by rules.
@@ -336,6 +406,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 8. **Get Alert by ID**
+
 - **URL:** `alert-engine/alerts/{id}`
 - **Method:** `GET`
 - **Description:** Fetch details of a specific alert.
@@ -350,6 +421,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 9. **Get Alert by user ID**
+
 - **URL:** `alert-engine/alerts/user/{id}`
 - **Method:** `GET`
 - **Description:** Fetch details of a specific alert.
@@ -364,6 +436,7 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 #### 10. **Get Alert by rule ID**
+
 - **URL:** `alert-engine/alerts/rule/{id}`
 - **Method:** `GET`
 - **Description:** Fetch details of a specific alert.

@@ -47,6 +47,10 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   registerCron(rule: Rule) {
     const cron = rule.interval;
     const jobName = `rule-${rule.id}`;
+    if (!cron) {
+      console.warn(`Rule ${rule.id} has no interval set, skipping scheduling.`);
+      return;
+    }
 
     if (this.schedulerRegistry.doesExist('cron', jobName)) {
       this.schedulerRegistry.deleteCronJob(jobName);
@@ -56,6 +60,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
+    console.log(rule);
     // TODO: load the source data for the rule
     const job = new CronJob(cron, async () => {
       fs.appendFile(

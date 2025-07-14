@@ -1,13 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: true,
+    rawBody: true,
+  });
   app.enableCors({
     origin: '*',
     methods: 'GET,PUT,POST,DELETE',
   });
+  app.use(bodyParser.text({ type: ['application/x-yaml', 'text/yaml', 'text/plain', 'application/yaml'] }));
 
   const config = new DocumentBuilder()
     .setTitle('Guaritos API')

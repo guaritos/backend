@@ -42,7 +42,7 @@ import supabaseConfig from './config/supabase.config';
 export class AppModule { 
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(YamlParserMiddleware)
-      .forRoutes('rule-engine')
+      .forRoutes('rule-engine/*')
       .apply(ApiLoggerMiddleware)
       .forRoutes('*')
   }

@@ -3,6 +3,7 @@ import { RuleEngineService } from './rule-engine.service';
 import { RuleService } from './rule.service';
 import { RuleSchedulerService } from './rule-scheduler.service';
 import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { CreateRuleDTO } from './dtos';
 
 @Controller('rule-engine')
 export class RuleEngineController {
@@ -117,7 +118,7 @@ export class RuleEngineController {
   \`\`\``,
   })
   @Post('rules')
-  async createRule(@Body() ruleData: any) {
+  async createRule(@Body() ruleData: CreateRuleDTO) {
     const rule = await this.ruleService.createRule(ruleData);
     if (!rule) {
       throw new Error('Failed to create rule');

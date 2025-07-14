@@ -47,6 +47,18 @@ export class RuleService {
     return data || null;
   }
 
+  async getRuleTemplates(): Promise<Rule[]> {
+    const { data, error } = await this.supabase
+      .from('active_rules')
+      .select('*')
+      .eq('is_template', true);
+    if (error) {
+      console.error('Error fetching rule templates from Supabase:', error);
+      throw new Error('Failed to fetch rule templates');
+    }
+    return data;
+  }
+
   async createRule(rule: CreateRuleDTO): Promise<Rule> {
     console.log('Creating rule:', rule);
     const { data, error } = await this.supabase

@@ -65,6 +65,16 @@ export class RuleEngineController {
     description: 'Endpoint to retrieve a specific rule by its ID.',
     tags: ['rules'],
   })
+  @Get('rules/template')
+  async getRuleTemplates() {
+    return this.ruleService.getRuleTemplates();
+  }
+
+  @ApiOperation({
+    summary: 'Get rule by ID',
+    description: 'Endpoint to retrieve a specific rule by its ID.',
+    tags: ['rules'],
+  })
   @Get('rules/:id')
   async getRuleById(@Param('id') ruleId: string) {
     return this.ruleService.getRuleById(ruleId);

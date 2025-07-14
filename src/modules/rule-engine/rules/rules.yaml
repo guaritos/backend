@@ -1,14 +1,9 @@
 - name: Detect Money Laundering
   user_id: "user123"
   source: "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12"
-  interval: "5 * * * * *"
+  interval: "1 * * * * *"
   when:
     and:
-      - type: plain
-        field: strategy_snap_shot_items.weighted_edges[].hash
-        operator: "="
-        value: "2304959"
-
       - type: plain
         field: strategy_snap_shot_items.weighted_edges[].weight
         operator: ">"
@@ -16,13 +11,20 @@
 
       - type: plain
         field: strategy_snap_shot_items.r.key
-        operator: "eq"
-        value: "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12"
+        operator: "contains"
+        value: ["0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12", "0xf34aaa5df9f234492ea17903ddc61d1b4112b1439f9efaa5de28437c2e815917", "0x99ed7e01425fef8923050108a76f3002a7c4703419cb592413bebcc77aabd62d"]
 
       - type: plain
         field: strategy_snap_shot_items.weighted_edges[]
-        operator: "not_containsa"
-        value: "APT_0x1::aptos_coin::AptosCoin"
+        operator: "not_contains"
+        value: 
+          symbol: "APT_0x1::aptos_coin::ApstosCoin"
+
+      - type: plain
+        field: strategy_snap_shot_items.weighted_edges[]
+        operator: "contains"
+        value: 
+          to: "0xe451633c0c24226ce9a0c5674a3603a4afb77066eb1b77162f55c7fbd0e44727"
       
   aggregate:
     - type: aggregate
@@ -36,86 +38,8 @@
       operator: ">"
       value: 50
   then:
-    - type: tag
-      value: "Money Laundering"
-    - type: notify
-      message: "Potential money laundering detected."
     - type: email
       to: ["22021217@vnu.edu.vn"]
       subject: "Alert: Money Laundering Detected"
       body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
-  #     - and:
-  #         - type: exists
-  #           field: path
-  #           operator: "true"
-  #         - type: plain
-  #           field: contract
-  #           value: "tornado"
-  #           operator: ">"
-
-  #     - or:
-  #         - type: contains
-  #           field: contract
-  #           value: "tornado"
-  #         - type: contains
-  #           field: contract
-  #           value: "mixer"
-
-  # aggregate:
-  #   - type: count
-  #     field: tx_count
-  #     operator: ">"
-  #     value: 50
-
-  #   - type: sum
-  #     field: value
-  #     operator: ">"
-  #     value: 1000000
-#   then:
-#     - type: tag
-#       value: "Money Laundering"
-#     - type: notify
-#       message: "Potential money laundering detected."
-#     - type: email
-#       to: ["22021217@vnu.edu.vn"]
-#       subject: "Alert: Money Laundering Detected"
-#       body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
-
-# - name: Detect Fraudulent Transactions
-#   user_id: "user123"
-#   source: transactions 
-#   interval: "* * * * * *"
-#   when:
-#     and:
-#       - type: exists
-#         field: address
-#         operator: "true"
-
-#   then:
-#     - type: tag
-#       value: "Fraud Alert"
-
-
-# - name: Detect Fraudulent Bomba
-#   user_id: "user123"
-#   source: transactions 
-#   interval: "* * * * * *"
-#   when:
-#     and:
-#       - type: exists
-#         field: rank
-#         operator: "true"
-#       - type: plain
-#         field: rank
-#         operator: ">"
-#         value: 0.15
-
-#   aggregate:
-#     - type: sum
-#       field: rank
-#       operator: ">"
-#       value: 0.25629205900245483
-    
-#   then:
-#     - type: tag
-#       value: "Fraud Alert"
+  tags: ['money-laundering', 'alert']

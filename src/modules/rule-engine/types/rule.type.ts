@@ -29,7 +29,9 @@ export type ComparisonOp =
   | '>=' | '<=' | '>' | '<' | '=' | '!='
   | 'gte'| 'lte'| 'gt'| 'lt'| 'eq'| 'ne'
   | 'contains'
-  | 'not_contains';
+  | 'not_contains'
+  | 'in';
+  
 export type ExistenceOp = 'true' | 'false';
 
 type LogicalRule =

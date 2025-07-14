@@ -301,24 +301,23 @@ export class QueryEngineService {
         }
         return left !== right;
       case 'contains':
-        if (typeof left !== typeof right) {
-          return false;
-        }
         if (typeof right === 'object' && right !== null) {
           return Object.entries(right).every(
             ([key, value]) => this.compare(left[key], '=', value),
           );
         }
       case 'not_contains':
-        if (typeof left !== typeof right) {
-          return false;
-        }
         if (typeof right === 'object' && right !== null) {
           return Object.entries(right).every(
             ([key, value]) => this.compare(left[key], '!=', value),
           );
         }
         return !left.includes(right);
+      case 'in':
+        if (Array.isArray(right)) {
+          return right.includes(left);
+        }
+        return false;
       default:
         throw new Error(`Unsupported operator: ${operator}`);
     }

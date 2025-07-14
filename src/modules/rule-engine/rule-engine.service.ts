@@ -8,7 +8,6 @@ import { AlertEngineService } from '../alert-engine/alert-engine.service';
 import { EventsGateway } from '../events/events.gateway';
 import { TracerEngineService } from '../tracer-engine/tracer-engine.service';
 import { Alert } from '../alert-engine/interfaces';
-import { normalizeDataset } from 'src/helpers/normalize-data';
 import * as fs from 'fs';
 
 @Injectable()

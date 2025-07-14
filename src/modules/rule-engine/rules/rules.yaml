@@ -13,6 +13,17 @@
         field: strategy_snap_shot_items.weighted_edges[].weight
         operator: ">"
         value: 0.15
+
+      - type: plain
+        field: strategy_snap_shot_items.r.key
+        operator: "eq"
+        value: "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12"
+
+      - type: plain
+        field: strategy_snap_shot_items.weighted_edges[]
+        operator: "not_containsa"
+        value: "APT_0x1::aptos_coin::AptosCoin"
+      
   aggregate:
     - type: aggregate
       field: strategy_snap_shot_items.weighted_edges[].weight

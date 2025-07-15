@@ -4,27 +4,60 @@ import { RuleActionService } from './rule-action.service';
 import { Rule } from './interfaces';
 import { ComparisonOp, PlainCondition } from './types/rule.type';
 import { QueryEngineService } from './query-engine.service';
+import { AlertEngineService } from '../alert-engine/alert-engine.service';
+import { filter } from 'rxjs';
+import { EventsGateway } from '../events/events.gateway';
+import { Alert } from '../alert-engine/interfaces';
 
 @Injectable()
 export class RuleEngineService {
   constructor(
-    private readonly loader: RuleService,
+    private readonly eventGateway: EventsGateway,
     private readonly action: RuleActionService,
+    private readonly alertEngine: AlertEngineService,
     private readonly queryEngine: QueryEngineService,
   ) {}
-
+  
   async execute(rule: Rule, dataset: any): Promise<any[]> {
     const { when } = rule;
+    if (!when && !rule.aggregate) {
+      throw new Error(
+        `Rule ${rule.id} has no condition or aggregation defined.`,
+      );
+    }
 
     const filtered = this.queryEngine.compile(when)(dataset);
-    
-    const aggOk = rule.aggregate && this.queryEngine.matchAggregate(filtered, rule.aggregate);
+    const agg = this.queryEngine.compileAggregate(rule.aggregate)(filtered);
 
-    if (filtered.length > 0 && aggOk) {
-      await this.action.run(rule.then, filtered);
+    if (filtered.length > 0 && agg.length > 0) {
+      console.log(
+        `Rule ${rule.id} matched with ${filtered.length} items, executing actions...`,
+      );
+      try {
+        const context = await this.alertEngine.createAlert({
+          rule_id: rule.id,
+          result: filtered,
+          data: dataset,
+          actions_fired: [],
+          status: 'pending',
+          message: 'Alert triggered because rule condition matched',
+        });
+        await this.notifyRuleTriggered(rule.user_id, rule.name, context);
+      } catch (error) {
+        console.error('Error creating alert:', error);
+        throw new Error('Failed to create alert');
+      }
+      await this.action.run(rule.then, rule.id, filtered);
     }
-    
+
     return filtered;
+  }
+
+  async notifyRuleTriggered(userId: string, ruleName: string, context: Alert) {
+    this.eventGateway.sendEventToUser(userId, 'alert', {
+      title: `Rule "${ruleName}" has been triggered.`,
+      context,
+    });
   }
 
   // async queryConditionTree(condition: any, context: any): Promise<boolean> {

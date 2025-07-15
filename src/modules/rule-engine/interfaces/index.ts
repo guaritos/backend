@@ -1,1 +1,1 @@
-export * from './rule.interface';
+export * from './rule.interfaces';

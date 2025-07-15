@@ -79,56 +79,60 @@ The Rule Engine Platform is deployed and accessible via the following link:
 ```
 
 #### When:
+
 Base condition for query
-| Condition Type | Description                     |   Field use  | Operator Examples       |
+| Condition Type | Description | Field use | Operator Examples |
 |----------------|---------------------------------|--------------|-------------------------|
-| Plain          | Normal field comparison         | ``operator`` | `=`, `!=`, `<`, `>`, `<=`, `>=` |
-| Exists         | Boolean field existence check   | ``operator`` | `true`, `false`         |
-
-
----
-| Field Type       | Description                                      | Example                       |
-|------------------|--------------------------------------------------|-------------------------------|
-| Primitive/Object | Represents a single value or a nested object     | `field.a`                     |
-| Array            | Represents a list of values/objects              | `field[]`                     |
-| In Array         | Represents a specific field within an array      | `field[].b`                   |
-| Key/Value        | Represents key-value pairs in array-like objects | `field.key`, `field.value`    |
+| Plain | Normal field comparison | `operator` | `=`, `!=`, `<`, `>`, `<=`, `>=` |
+| Exists | Boolean field existence check | `operator` | `true`, `false` |
 
 ---
+
+| Field Type       | Description                                      | Example                    |
+| ---------------- | ------------------------------------------------ | -------------------------- |
+| Primitive/Object | Represents a single value or a nested object     | `field.a`                  |
+| Array            | Represents a list of values/objects              | `field[]`                  |
+| In Array         | Represents a specific field within an array      | `field[].b`                |
+| Key/Value        | Represents key-value pairs in array-like objects | `field.key`, `field.value` |
+
+---
+
 | Operator                             | Description                           |
-|--------------------------------------|---------------------------------------|
+| ------------------------------------ | ------------------------------------- |
 | `<=`, `>=`, `<`, `>`, `=`, `!=`      | Base comparison operators             |
 | `lte`, `gte`, `lt`, `gt`, `eq`, `ne` | Alternative base comparison operators |
 | `contains`                           | Compares partial object               |
 | `not_contains`                       | Compares partial object (negated)     |
 
-| Value Type | Description                                                                 |
-|------------|-----------------------------------------------------------------------------|
-| Object     | Used with operators `contains`, `not_contains`, `eq`, or `ne`.                             |
-| Primitive  | Used with other operators such as `=`, `!=`, `<`, `>`, `<=`, `>=`.         |
+| Value Type | Description                                                        |
+| ---------- | ------------------------------------------------------------------ |
+| Object     | Used with operators `contains`, `not_contains`, `eq`, or `ne`.     |
+| Primitive  | Used with other operators such as `=`, `!=`, `<`, `>`, `<=`, `>=`. |
 
 #### Aggregate:
+
 If no and:/or: notation, auto assume it is and
 
 Supports operations such as `sum`, `min`, `max`, `count`, and `avg`.
 
-````yaml
+```yaml
 aggregate:
-    - type: aggregate
-      field: strategy_snap_shot_items.weighted_edges[].weight
-      op: sum
-      operator: ">"
-      value: 0.25629205900245483
-    - type: aggregate
-      field: strategy_snap_shot_items.weighted_edges[].hash
-      op: count
-      operator: ">"
-      value: 50
-````
+  - type: aggregate
+    field: strategy_snap_shot_items.weighted_edges[].weight
+    op: sum
+    operator: '>'
+    value: 0.25629205900245483
+  - type: aggregate
+    field: strategy_snap_shot_items.weighted_edges[].hash
+    op: count
+    operator: '>'
+    value: 50
+```
 
 ## 🛠️ Engine Function Documentation
 
 ### Overview
+
 The engine function is the core component responsible for evaluating rules against transaction datasets. It processes rules defined in YAML/DSL format and triggers actions based on the evaluation results.
 
 ---
@@ -136,38 +140,42 @@ The engine function is the core component responsible for evaluating rules again
 ### 🔧 Engine Workflow
 
 1. **Rule Parsing**:
-  - The engine parses rules written in YAML/DSL format into an internal representation.
-  - Supports logical operators (`and`, `or`, `not`) and condition types (`aggregate`, `plain`, `exists`).
+
+- The engine parses rules written in YAML/DSL format into an internal representation.
+- Supports logical operators (`and`, `or`, `not`) and condition types (`aggregate`, `plain`, `exists`).
 
 2. **Dataset Query**:
-  - The engine evaluates rules against incoming transaction datasets.
-  - Handles aggregate conditions (`sum`, `count`, `avg`) and field-specific checks.
-  - Return the data match
+
+- The engine evaluates rules against incoming transaction datasets.
+- Handles aggregate conditions (`sum`, `count`, `avg`) and field-specific checks.
+- Return the data match
 
 3. **Action Execution**:
-  - Executes actions (`webhook`, `email`, `tag`) when rules are triggered.
-  - Supports user-defined templates for webhook and email actions.
+
+- Executes actions (`webhook`, `email`, `tag`) when rules are triggered.
+- Supports user-defined templates for webhook and email actions.
 
 4. **Alert Management**:
-  - Stores alert history for triggered rules.
-  - Pushes real-time alerts via WebSocket.
+
+- Stores alert history for triggered rules.
+- Pushes real-time alerts via WebSocket.
 
 ---
 
 ### 🔍 Rule Evaluation Details
 
 #### Supported Condition Types:
+
 - **Aggregate**:
   - Evaluates aggregate metrics like `sum`, `count`, `avg`.
   - Example:
-   ```yaml
-   type: aggregate
-   field: value
-   op: sum
-   operator: ">"
-   value: 1000000
-````
-
+  ```yaml
+  type: aggregate
+  field: value
+  op: sum
+  operator: '>'
+  value: 1000000
+  ```
 - **Plain**:
   - Checks individual fields against a condition.
   - Example:
@@ -451,3 +459,4 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 ---
+````

@@ -43,7 +43,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   
-  sendEventToUser(userId: string, event: SocketEvent, data: any): void {
+  sendEventToUser(userId: string, event: SocketEvent, type: "info" | "error", data: any): void {
     if (!userId || !event) {
       console.error('User ID or event type is missing');
       return;
@@ -53,7 +53,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`Valid events are: ${SOCKET_EVENTS.join(', ')}`);
       return;
     }
-    this.server.to(userId).emit(event, data);
+    
+    this.server.to(userId).emit(event, {
+      type,
+      data,
+      timestamp: new Date().toISOString(),
+    });
     console.log(`Event sent to user ${userId}:`, event);
   }
 

@@ -32,7 +32,7 @@ export class RuleEngineService {
       // );
       return await this.execute(rule, dataset);
     } catch (error) {
-      this.eventGateway.sendEventToUser(rule.user_id, 'alert', {
+      this.eventGateway.sendEventToUser(rule.user_id, 'alert', 'error', {
         title: `Error running rule "${rule.name}"`,
         message: `${error.message}`,
       });
@@ -85,7 +85,7 @@ export class RuleEngineService {
     ruleName: string,
     context: Alert,
   ) {
-    this.eventGateway.sendEventToUser(userId, 'alert', {
+    this.eventGateway.sendEventToUser(userId, 'alert', 'info', {
       title: `Rule "${ruleName}" has been triggered.`,
       context,
     });

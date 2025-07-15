@@ -69,14 +69,27 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
     const job = new CronJob(cron, async () => {
       fs.appendFile(
         this.logPath,
-        `[${new Date().toLocaleString()}][CRON] Executing rule: (${rule.id}) (${rule.user_id}) ${rule.name}\n`,
+        `[${new Date().toLocaleString()}][CRON][INFO]Executing rule: (${rule.id}) (${rule.user_id}) ${rule.name}\n`,
         (err) => {
           if (err) {
             console.error(`Failed to write to log file: ${err.message}`);
           }
         },
       );
-      await this.engine.runRule(rule);
+      try {
+        await this.engine.runRule(rule);
+      } catch (error) {
+        fs.appendFile(
+          this.logPath,
+          `[${new Date().toLocaleString()}][CRON][ERROR]Failed to execute: (${rule.id}) (${rule.user_id}) ${rule.name}\n`,
+          (err) => {
+            if (err) {
+              console.error(`Failed to write to log file: ${err.message}`);
+            }
+          },
+        );
+        this.removeRule(rule.id);
+      }
     });
 
     this.schedulerRegistry.addCronJob(jobName, job);

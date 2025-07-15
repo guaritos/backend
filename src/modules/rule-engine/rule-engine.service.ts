@@ -32,11 +32,13 @@ export class RuleEngineService {
       // );
       return await this.execute(rule, dataset);
     } catch (error) {
-      console.error(`Error running rule ${rule.id}:`, error);
-      this.eventGateway.sendEventToUser(rule.user_id, 'error', {
+      this.eventGateway.sendEventToUser(rule.user_id, 'alert', {
         title: `Error running rule "${rule.name}"`,
         message: `${error.message}`,
       });
+      throw new Error(
+        `Failed to run rule ${rule.id} with error: ${error.message}`,
+      );
     }
   }
 

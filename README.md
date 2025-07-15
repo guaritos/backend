@@ -76,6 +76,9 @@ The Rule Engine Platform is deployed and accessible via the following link:
       to: ['22021217@vnu.edu.vn']
       subject: 'Alert: Money Laundering Detected'
       body: '<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>'
+  tags: ['money', 'servere']
+  enabled: true
+  is_template: false
 ```
 
 #### When:
@@ -229,13 +232,6 @@ The engine function is the core component responsible for evaluating rules again
   to: '{{user.email}}'
   subject: '🚨 Rule Triggered'
   body: 'Rule {{rule.name}} triggered on {{context.timestamp}}'
-  ```
-- **Tag**:
-  - Tags transactions for further analysis.
-  - Example:
-  ```yaml
-  type: tag
-  value: 'money-laundering'
   ```
 
 ---
@@ -459,4 +455,4 @@ backend-production-bdf7.up.railway.app/api
   ```
 
 ---
-````
+

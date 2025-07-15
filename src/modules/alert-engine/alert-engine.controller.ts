@@ -22,7 +22,7 @@ export class AlertEngineController {
     tags: ['alerts'],
   })
   @Get("/alerts/:id")
-  async getAlertById(id: string) {
+  async getAlertById(@Param('id') id: string) {
     return await this.alertEngineService.getAlertById(id);
   }
 

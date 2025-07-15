@@ -65,7 +65,6 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    console.log(rule);
     // TODO: load the source data for the rule
     const job = new CronJob(cron, async () => {
       fs.appendFile(

@@ -45,7 +45,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   }
 
   registerCron(rule: Rule) {
-    const cron = rule.interval;
+    const cron = rule.cron;
     const jobName = `rule-${rule.id}`;
     if (!cron) {
       console.warn(`Rule ${rule.id} has no interval set, skipping scheduling.`);

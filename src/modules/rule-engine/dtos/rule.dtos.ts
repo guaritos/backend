@@ -34,12 +34,12 @@ export class CreateRuleDTO {
   source: string;
 
   @ApiProperty({
-    description: 'Interval at which the rule should be executed',
+    description: 'Cron at which the rule should be executed',
     example: '0 0 * * *', // Cron format
   })
   @IsString()
   @IsNotEmpty()
-  interval: string;
+  cron: string;
 
   @ApiProperty({
     type: 'object',

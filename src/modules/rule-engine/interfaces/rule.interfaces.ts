@@ -7,7 +7,7 @@ export interface Rule {
   name: string;
   description?: string;
   source: string;
-  interval: string;
+  cron: string;
   when?: Condition;
   aggregate?: Aggregate;
   then: RuleAction[];

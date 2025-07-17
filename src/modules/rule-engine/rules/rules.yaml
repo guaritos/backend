@@ -1,7 +1,7 @@
 - name: Detect Money Laundering
   user_id: "user123"
   source: "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12"
-  interval: "1 * * * * *"
+  cron: "1 * * * * *"
   when:
     and:
       - type: plain
@@ -41,5 +41,5 @@
     - type: email
       to: ["22021217@vnu.edu.vn"]
       subject: "Alert: Money Laundering Detected"
-      body: "<p>We have detected a potential money laundering activity in your account. Please review your transactions.</p>"
+      body: "<p>Laundering activities detected</p>"
   tags: ['money-laundering', 'alert']

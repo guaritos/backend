@@ -32,7 +32,7 @@ The Rule Engine Platform is deployed and accessible via the following link:
 - name: Detect Money Laundering
   user_id: 'user123'
   source: '0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12'
-  interval: '5 * * * * *'
+  cron: '5 * * * * *'
   when:
     and:
       - type: plain

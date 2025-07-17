@@ -3,6 +3,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { RuleService } from './rule.service';
 import { RuleEngineService } from './rule-engine.service';
 import { validateCron } from '../../helpers/validate-cron';
+import cronValidate from 'cron-validate';
 import { CronJob } from 'cron';
 import * as fs from 'fs';
 import { Rule } from './interfaces';
@@ -47,28 +48,36 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   }
 
   registerCron(rule: Rule) {
-    const cron = rule.cron;
+    const ruleCron = rule.cron;
     const jobName = `rule-${rule.id}`;
   
-    if (!cron) {
-      console.warn(`Rule ${rule.id} has no interval set, skipping scheduling.`);
+    if (!ruleCron) {
       this.eventGateway.sendEventToUser(rule.user_id, 'alert', 'error', {
         title: `Rule "${rule.name}" has no interval set`,
         message: `Please set a valid cron expression for the rule.`,
       });
       return;
     }
-    try {
-      console.warn(`Rule ${rule.id} has an invalid cron expression: ${cron} skipping scheduling.`);
-      validateCron(cron);
-    } catch (error) {
+    const cron = cronValidate(ruleCron, { preset: 'default', override: { useSeconds: true } })
+    if (!cron.isValid()) {
       this.eventGateway.sendEventToUser(rule.user_id, 'alert', 'error', {
         title: `Invalid cron expression for rule "${rule.name}"`,
-        message: `The cron expression "${cron}" is not valid. Please correct it.`,
-        error: error.message,
+        message: `The cron expression "${ruleCron}" is not valid. Please correct it.`,
+        error: cron.getError(),
       });
-      return;
     }
+
+    // try {
+    //   console.warn(`Rule ${rule.id} has an invalid cron expression: ${cron} skipping scheduling.`);
+    //   validateCron(cron);
+    // } catch (error) {
+    //   this.eventGateway.sendEventToUser(rule.user_id, 'alert', 'error', {
+    //     title: `Invalid cron expression for rule "${rule.name}"`,
+    //     message: `The cron expression "${cron}" is not valid. Please correct it.`,
+    //     error: error.message,
+    //   });
+    //   return;
+    // }
 
     if (this.schedulerRegistry.doesExist('cron', jobName)) {
       this.schedulerRegistry.deleteCronJob(jobName);
@@ -84,7 +93,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
     }
 
     // TODO: load the source data for the rule
-    const job = new CronJob(cron, async () => {
+    const job = new CronJob(ruleCron, async () => {
       fs.appendFile(
         this.logPath,
         `[${new Date().toLocaleString()}][CRON][INFO]Executing rule: (${rule.id}) (${rule.user_id}) ${rule.name}\n`,

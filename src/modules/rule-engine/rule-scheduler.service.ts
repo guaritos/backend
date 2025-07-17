@@ -2,7 +2,7 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { RuleService } from './rule.service';
 import { RuleEngineService } from './rule-engine.service';
-import { validateCron } from 'src/helpers/interval-time';
+import { validateCron } from '../../helpers/validate-cron';
 import { CronJob } from 'cron';
 import * as fs from 'fs';
 import { Rule } from './interfaces';
@@ -49,7 +49,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   registerCron(rule: Rule) {
     const cron = rule.cron;
     const jobName = `rule-${rule.id}`;
-    const isValidCron = validateCron(cron);
+  
     if (!cron) {
       console.warn(`Rule ${rule.id} has no interval set, skipping scheduling.`);
       this.eventGateway.sendEventToUser(rule.user_id, 'alert', 'error', {
@@ -58,11 +58,14 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
       });
       return;
     }
-    if (!isValidCron) {
-      console.warn(`Rule ${rule.id} has an invalid cron expression: ${cron}`);
+    try {
+      console.warn(`Rule ${rule.id} has an invalid cron expression: ${cron} skipping scheduling.`);
+      validateCron(cron);
+    } catch (error) {
       this.eventGateway.sendEventToUser(rule.user_id, 'alert', 'error', {
         title: `Invalid cron expression for rule "${rule.name}"`,
         message: `The cron expression "${cron}" is not valid. Please correct it.`,
+        error: error.message,
       });
       return;
     }

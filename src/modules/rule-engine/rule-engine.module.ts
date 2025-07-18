@@ -11,6 +11,7 @@ import { AlertEngineModule } from '../alert-engine/alert-engine.module';
 import { EmailModule } from '../email/email.module';
 import { EventsModule } from '../events/events.module';
 import { TracerEngineModule } from '../tracer-engine/tracer-engine.module';
+import { AptosModule } from '../aptos';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TracerEngineModule } from '../tracer-engine/tracer-engine.module';
     EventsModule,
     ScheduleModule.forRoot(),
     TracerEngineModule,
+    AptosModule
   ],
   providers: [
     RuleEngineService,

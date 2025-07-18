@@ -17,12 +17,14 @@ import { ApiLoggerMiddleware, YamlParserMiddleware } from './middlewares';
 import { TracerEngineModule } from './modules/tracer-engine/tracer-engine.module';
 import emailConfig from './config/email.config';
 import supabaseConfig from './config/supabase.config';
+import contractConfig from './config/contract.config';
+import aptosConfig from './config/aptos.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [emailConfig, supabaseConfig]
+      load: [emailConfig, supabaseConfig, contractConfig, aptosConfig]
     }),
     RuleEngineModule, 
     SupabaseModule,

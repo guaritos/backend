@@ -52,7 +52,7 @@ The Rule Engine Platform is deployed and accessible via the following link:
 
       - type: plain
         field: strategy_snap_shot_items.weighted_edges[]
-        operator: 'not_containsa'
+        operator: 'not_contains'
         value: 'APT_0x1::aptos_coin::AptosCoin'
 
   aggregate:
@@ -68,10 +68,6 @@ The Rule Engine Platform is deployed and accessible via the following link:
       value: 50
 
   then:
-    - type: tag
-      value: 'Money Laundering'
-    - type: notify
-      message: 'Potential money laundering detected.'
     - type: email
       to: ['22021217@vnu.edu.vn']
       subject: 'Alert: Money Laundering Detected'
@@ -79,6 +75,8 @@ The Rule Engine Platform is deployed and accessible via the following link:
   tags: ['money', 'servere']
   enabled: true
   is_template: false
+  in_owner_blacklist: false
+  in_community_blacklist: false
 ```
 
 #### When:

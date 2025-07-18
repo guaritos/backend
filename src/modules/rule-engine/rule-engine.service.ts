@@ -30,9 +30,9 @@ export class RuleEngineService {
   async runRule(rule: Rule): Promise<any[]> {
     try {
       // const dataset = JSON.parse(fs.readFileSync(`./logs/76-dataset.json`, 'utf-8'));
-      const dataset = JSON.parse(fs.readFileSync(`tracer-result-liquidswap-v0.json`, 'utf-8'));
+      // const dataset = JSON.parse(fs.readFileSync(`tracer-result-liquidswap-v0.json`, 'utf-8'));
       
-      // const dataset = await this.tracerEngine.traceByAddress(rule.source);
+      const dataset = await this.tracerEngine.traceByAddress(rule.source);
       // const normalizedDataset = normalizeDataset(dataset);
       // fs.writeFileSync(
       //   `./logs/${rule.id}-dataset.json`,

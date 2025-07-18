@@ -4,6 +4,7 @@ import { RuleService } from './rule.service';
 import { RuleSchedulerService } from './rule-scheduler.service';
 import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { CreateRuleDTO } from './dtos';
+import { BlacklistAccountService } from '../aptos/services/blacklist-account.service';
 
 @Controller('rule-engine')
 export class RuleEngineController {
@@ -11,6 +12,7 @@ export class RuleEngineController {
     private readonly ruleEngineService: RuleEngineService,
     private readonly ruleService: RuleService,
     private readonly scheduleService: RuleSchedulerService,
+    private readonly aptosService: BlacklistAccountService
   ) {}
 
   @ApiOperation({
@@ -38,6 +40,17 @@ export class RuleEngineController {
     }
     await this.ruleService.deleteAllRules();
     return res;
+  }
+
+  @Get('test/aptos')
+  async testAptos() {
+    try {
+    const blacklist = await this.aptosService.getOwnerBlacklist("0x57c528d90af4255748b37f3730afdda043fad019be735e7d899f5565840e0366"); 
+    return blacklist;
+    } catch (error) {
+      console.error('Error fetching blacklisted accounts:', error);
+      throw new Error('Failed to fetch blacklisted accounts');
+    }
   }
 
   @ApiOperation({
@@ -91,7 +104,7 @@ export class RuleEngineController {
   id: rule-ml-v1
   name: Detect Money Laundering
   source: transactions // Not decided yet, will be loaded from the rule engine, maybe account address
-  interval: "1h" // Will be changed to cron later
+  interval: "cron" // Will be changed to cron later
   enabled: true
   when:
     and:

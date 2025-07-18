@@ -1,16 +1,19 @@
 import { Resolver, Query, Args } from '@nestjs/graphql';
-import { AccountTransactionService } from '../services';
+import { AccountTransactionService, DaoBlacklistService } from '../services';
 import { AccountTransaction } from '../entities';
 import {
   AccountTransactionFiltersInput,
   GetAccountTransactionsByVersionInput,
   GetAccountTransactionsByAddressInput,
 } from '../inputs';
+import { string } from 'zod';
+import { DaoBlacklist } from '../entities/dao-blacklist.entity';
 
 @Resolver(() => AccountTransaction)
 export class AccountTransactionResolver {
   constructor(
-    private readonly accountTransactionService: AccountTransactionService
+    private readonly accountTransactionService: AccountTransactionService,
+    private readonly daoBlacklistService: DaoBlacklistService
   ) {}
 
   @Query(() => [AccountTransaction], { name: 'accountTransactions' })
@@ -43,5 +46,12 @@ export class AccountTransactionResolver {
       input.limit,
       input.offset
     );
+  }
+
+  @Query(() => DaoBlacklist, { name: 'DaoBlacklist' })
+  async getDaoBlacklist(
+    @Args('accountAddress') accountAddress: string
+  ): Promise<DaoBlacklist> {
+    return this.daoBlacklistService.getDaoBlacklist(accountAddress);
   }
 }

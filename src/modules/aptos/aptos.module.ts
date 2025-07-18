@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AccountTransactionService, ExtendedDataService } from './services';
+import { AccountTransactionService, ExtendedDataService,DaoBlacklistService } from './services';
 import { AccountTransactionResolver, ExtendedDataResolver } from './resolvers';
 
 @Module({
@@ -8,9 +8,10 @@ import { AccountTransactionResolver, ExtendedDataResolver } from './resolvers';
   providers: [
     AccountTransactionService,
     ExtendedDataService,
+    DaoBlacklistService,
     AccountTransactionResolver,
     ExtendedDataResolver,
   ],
-  exports: [AccountTransactionService, ExtendedDataService],
+  exports: [AccountTransactionService, ExtendedDataService, DaoBlacklistService],
 })
 export class AptosModule {}

@@ -11,8 +11,8 @@ export abstract class BaseAptosService {
   protected indexerUrl: string;
 
   constructor(protected configService: ConfigService) {
-    const network = this.configService.get<Network>('APTOS_NETWORK', Network.MAINNET);
-    const customIndexerUrl = this.configService.get<string>('APTOS_INDEXER_URL');
+    const network = this.configService.get<Network>('aptos.APTOS_NETWORK', Network.MAINNET);
+    const customIndexerUrl = this.configService.get<string>('aptos.APTOS_INDEXER_URL');
     const clientConfig: ClientConfig = {
       API_KEY: process.env.APTOS_BUILD_API_KEY
     }
@@ -26,6 +26,7 @@ export abstract class BaseAptosService {
     this.indexerUrl = customIndexerUrl || this.getDefaultIndexerUrl(network);
     
     this.logger.log(`Initialized Aptos service for network: ${network}`);
+  ``
   }
 
   private getDefaultIndexerUrl(network: Network): string {

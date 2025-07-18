@@ -58,7 +58,7 @@ export class RuleEngineService {
       dataset,
     );
 
-    const ownerBlacklist = rule.in_owner_blacklist ? await this.blacklistAccountService.getOwnerBlacklist(rule.source) : [];
+    const ownerBlacklist = rule.in_owner_blacklist ? await this.blacklistAccountService.getOwnerBlacklist(rule.user_id) : [];
     const inOwnerBlacklist = this.queryEngine.isInBlacklist(dataset, ownerBlacklist);
     if ((queryResult.length > 0 && aggregateResult.length > 0) || inOwnerBlacklist) {
       const result = {

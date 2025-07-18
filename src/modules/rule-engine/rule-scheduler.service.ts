@@ -107,9 +107,11 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
       try {
         await this.engine.runRule(rule);
       } catch (error) {
+        console.error(`[CRON][ERROR]Failed to execute rule: ${rule.id} - ${error.message}`);
         fs.appendFile(
           this.logPath,
-          `[${new Date().toLocaleString()}][CRON][ERROR]Failed to execute: (${rule.id}) (${rule.user_id}) ${rule.name}\n`,
+          `[${new Date().toLocaleString()}][CRON][ERROR]Failed to execute: (${rule.id}) (${rule.user_id}) ${rule.name}\n
+          Error: ${error.message}\n`,
           (err) => {
             if (err) {
               console.error(`Failed to write to log file: ${err.message}`);

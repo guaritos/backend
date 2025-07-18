@@ -91,6 +91,24 @@ export class CreateRuleDTO {
   @IsOptional()
   @IsBoolean()
   is_template?: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the rule should check the owner blacklist',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  in_owner_blacklist?: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the rule should check the community blacklist',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  in_community_blacklist?: boolean;
 }
 
 

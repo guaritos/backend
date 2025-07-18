@@ -14,4 +14,6 @@ export interface Rule {
   tags?: string[];
   enabled?: boolean;
   is_template?: boolean;
+  in_owner_blacklist?: boolean;
+  in_community_blacklist?: boolean;
 }

@@ -22,13 +22,6 @@ export class QueryEngineService {
         return result ? result : [];
       }
     };
-    // return (item: TraceResult) => {
-    //   const item1 = Object.keys(item.strategy_snap_shot_items).filter(
-    //     (i) => this.match(i, condition))
-    //   const item2 = Object.keys(item.rank_items).filter(
-    //     (i) => this.match(item.rank_items[i], condition))
-    //   return [...item1, ...item2];
-    // }
   }
 
   compileAggregate(conditions: Aggregate): (item: any) => any[] {
@@ -325,5 +318,26 @@ export class QueryEngineService {
 
   private deepEqual(a: any, b: any): boolean {
     return JSON.stringify(a) === JSON.stringify(b);
+  }
+
+  isInBlacklist(
+    dataset: any,
+    blacklist: string[],
+  ): any[] {
+    if (!blacklist || !Array.isArray(blacklist)) {
+      return [];
+    }
+
+    const addresses = this.getValueByPath(dataset, "strategy_snap_shot_items.r.key");
+    if (!addresses) {
+      return [];
+    }
+    if (typeof addresses === 'string') {
+      return blacklist.includes(addresses) ? [addresses] : [];
+    }
+    if (Array.isArray(addresses)) {
+      return addresses.filter((address) => blacklist.includes(address));
+    }
+    return [];
   }
 }

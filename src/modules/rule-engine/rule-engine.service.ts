@@ -2,13 +2,15 @@ import { Injectable, Logger, LoggerService } from '@nestjs/common';
 import { RuleService } from './rule.service';
 import { RuleActionService } from './rule-action.service';
 import { Rule } from './interfaces';
-import { ComparisonOp, PlainCondition } from './types/rule.type';
+import { ComparisonOp, Condition, PlainCondition } from './types/rule.type';
 import { QueryEngineService } from './query-engine.service';
 import { AlertEngineService } from '../alert-engine/alert-engine.service';
 import { EventsGateway } from '../events/events.gateway';
 import { TracerEngineService } from '../tracer-engine/tracer-engine.service';
 import { Alert } from '../alert-engine/interfaces';
 import * as fs from 'fs';
+import { Field } from '@nestjs/graphql';
+import { BlacklistAccountService } from '../aptos/services/blacklist-account.service';
 
 @Injectable()
 export class RuleEngineService {
@@ -18,6 +20,7 @@ export class RuleEngineService {
     private readonly alertEngine: AlertEngineService,
     private readonly queryEngine: QueryEngineService,
     private readonly tracerEngine: TracerEngineService,
+    private readonly blacklistAccountService: BlacklistAccountService,
   ) {}
 
   async runRule(rule: Rule): Promise<any[]> {
@@ -51,12 +54,18 @@ export class RuleEngineService {
     }
 
     const queryResult = this.queryEngine.compile(when)(dataset);
-    const aggregateResult = this.queryEngine.compileAggregate(rule.aggregate)(dataset);
-    if (queryResult.length > 0 && aggregateResult.length > 0) {
+    const aggregateResult = this.queryEngine.compileAggregate(rule.aggregate)(
+      dataset,
+    );
+
+    const ownerBlacklist = rule.in_owner_blacklist ? await this.blacklistAccountService.getOwnerBlacklist(rule.source) : [];
+    const inOwnerBlacklist = this.queryEngine.isInBlacklist(dataset, ownerBlacklist);
+    if ((queryResult.length > 0 && aggregateResult.length > 0) || inOwnerBlacklist) {
       const result = {
         queryResult,
         aggregateResult,
-      }
+        inOwnerBlacklist,
+      };
       try {
         const context = await this.alertEngine.createAlert({
           rule_id: rule.id,

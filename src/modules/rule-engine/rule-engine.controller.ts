@@ -45,7 +45,7 @@ export class RuleEngineController {
   @Get('test/aptos')
   async testAptos() {
     try {
-    const blacklist = await this.aptosService.getBlacklistedAccounts("0x57c528d90af4255748b37f3730afdda043fad019be735e7d899f5565840e0366"); 
+    const blacklist = await this.aptosService.getOwnerBlacklist("0x57c528d90af4255748b37f3730afdda043fad019be735e7d899f5565840e0366"); 
     return blacklist;
     } catch (error) {
       console.error('Error fetching blacklisted accounts:', error);

@@ -13,7 +13,7 @@ export class BlacklistAccountService extends BaseAptosService {
     super(configService);
   }
 
-  async getBlacklistedAccounts(owner?: string): Promise<any> {
+  async getOwnerBlacklist(owner?: string): Promise<Array<any>> {
     const contractAddress = this.configService.get<string>('contract.GUARITOS_CONTRACT_ADDRESS');
     console.log('Contract Address:', contractAddress);
     const res = this.aptos.view({

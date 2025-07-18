@@ -1,5 +1,5 @@
 import { ApiProperty, ApiExtraModels } from '@nestjs/swagger';
-import { RuleAction } from '../types';
+import { RuleAction, RuleStatus } from '../types';
 import { Aggregate, AggregateCondition, Condition } from '../types/rule.type';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { AtLeastOneOf } from '../../../validators/at-least-one-of.validator';
@@ -109,6 +109,15 @@ export class CreateRuleDTO {
   @IsOptional()
   @IsBoolean()
   in_community_blacklist?: boolean;
+
+  @ApiProperty({
+    description: 'Status of the rule, e.g., "running", "stopped"',
+    example: 'running',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  status?: RuleStatus;
 }
 
 
@@ -131,11 +140,4 @@ export class RuleDTO extends CreateRuleDTO {
 }
 
 
-export class UpdateRuleDTO extends CreateRuleDTO {
-  @ApiProperty({
-    description: 'ID of the rule to be updated',
-  })
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-}
+export class UpdateRuleDTO extends CreateRuleDTO {}

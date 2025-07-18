@@ -15,7 +15,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly schedulerRegistry: SchedulerRegistry,
-    private readonly loader: RuleService,
+    private readonly service: RuleService,
     private readonly engine: RuleEngineService,
     private readonly eventGateway: EventsGateway,
   ) {
@@ -28,7 +28,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    const rules = await this.loader.getRules();
+    const rules = await this.service.getRules();
 
     for (const rule of rules) {
       this.registerCron(rule);
@@ -91,6 +91,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
       console.warn(`Rule ${rule.id} is a template, skipping scheduling.`);
       return;
     }
+    this.service.updateRuleStatus(rule.id, 'running');
 
     // TODO: load the source data for the rule
     const job = new CronJob(ruleCron, async () => {
@@ -127,6 +128,7 @@ export class RuleSchedulerService implements OnModuleInit, OnModuleDestroy {
     const jobName = `rule-${ruleId}`;
     if (this.schedulerRegistry.doesExist('cron', jobName)) {
       this.schedulerRegistry.deleteCronJob(jobName);
+      this.service.updateRuleStatus(ruleId, 'stopped');
       console.log(`Stopped rule: ${ruleId}`);
     } else {
       console.warn(`No job found for rule: ${ruleId}`);

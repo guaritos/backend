@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { parse } from 'csv-parse';
+import { RuleStatus } from './types';
 
 @Injectable()
 export class RuleService {
@@ -81,6 +82,19 @@ export class RuleService {
     if (error) {
       console.error('Error updating rule in Supabase:', error);
       throw new Error('Failed to update rule');
+    }
+    return data[0];
+  }
+
+  async updateRuleStatus(id: string, status: RuleStatus): Promise<Rule> {
+    const { data, error } = await this.supabase
+      .from('rules')
+      .update({ status })
+      .eq('id', id)
+      .select();
+    if (error) {
+      console.error('Error updating rule status in Supabase:', error);
+      throw new Error('Failed to update rule status');
     }
     return data[0];
   }

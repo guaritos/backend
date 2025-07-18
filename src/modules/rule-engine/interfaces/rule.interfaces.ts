@@ -1,4 +1,4 @@
-import { RuleAction } from "../types";
+import { RuleAction, RuleStatus } from "../types";
 import { Condition, Aggregate } from "../types/rule.type";
 
 export interface Rule {
@@ -16,4 +16,5 @@ export interface Rule {
   is_template?: boolean;
   in_owner_blacklist?: boolean;
   in_community_blacklist?: boolean;
+  status?: RuleStatus;
 }

@@ -36,38 +36,41 @@ export class QueryEngineService {
 
   getAllFields(obj: any, prefix = ''): { path: string; type: string }[] {
     if (typeof obj !== 'object' || obj === null) return [];
-
+  
     const paths: { path: string; type: string }[] = [];
-
+  
     for (const key of Object.keys(obj)) {
       const fullPath = prefix ? `${prefix}.${key}` : key;
       const value = obj[key];
-
+  
       if (Array.isArray(value)) {
         const arrPath = `${fullPath}[]`;
-
+  
+        // Include the array itself as a field
+        paths.push({ path: fullPath, type: 'array' });
+  
         if (value.length === 0) {
           paths.push({ path: arrPath, type: 'array' });
         } else {
           const first = value[0];
-
           if (typeof first === 'object' && first !== null) {
-            // Array of objects → recurse into first element
             paths.push(...this.getAllFields(first, arrPath));
           } else {
-            // Array of primitive
             paths.push({ path: arrPath, type: typeof first });
           }
         }
       } else if (typeof value === 'object' && value !== null) {
+        // Include the object itself as a field
+        paths.push({ path: fullPath, type: 'object' });
         paths.push(...this.getAllFields(value, fullPath));
       } else {
         paths.push({ path: fullPath, type: typeof value });
       }
     }
-
+  
     return paths;
   }
+  
 
   getValueByPath(obj: any, path: string): any {
     if (!path) return obj;

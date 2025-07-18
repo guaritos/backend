@@ -5,6 +5,7 @@ import { RuleSchedulerService } from './rule-scheduler.service';
 import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { CreateRuleDTO } from './dtos';
 import { BlacklistAccountService } from '../aptos/services/blacklist-account.service';
+import { Rule } from './interfaces';
 
 @Controller('rule-engine')
 export class RuleEngineController {
@@ -27,18 +28,18 @@ export class RuleEngineController {
   @Get('test')
   async testRuleEngine() {
     const rules = await this.ruleService.loadRules();
-    const data = await this.ruleService.loadData();
+    // const data = await this.ruleService.loadData();
     let res = [];
     for (const rule of rules) {
-      const ruleInsert = await this.ruleService.createRule(rule);
-      console.log('Rule created:', ruleInsert);
-      const result = await this.ruleEngineService.runRule(ruleInsert);
+      // const ruleInsert = await this.ruleService.createRule(rule);
+      console.log('Rule created:', rule);
+      const result = await this.ruleEngineService.runRule(rule as Rule);
       res.push({
-        rule: ruleInsert,
+        rule: rule,
         result: result,
       });
     }
-    await this.ruleService.deleteAllRules();
+    // await this.ruleService.deleteAllRules();
     return res;
   }
 
@@ -190,6 +191,16 @@ export class RuleEngineController {
       );
     }
     return { message: `Rule with ID ${ruleId} deleted.` };
+  }
+
+  @ApiOperation({
+    summary: 'Get dataset metadata',
+    description: 'Endpoint to retrieve metadata for the dataset used in rules.',
+    tags: ['metadata'],
+  })
+  @Get('metadata')
+  async getDatasetMetadata() {
+    return this.ruleEngineService.getDatasetMetadata();
   }
 
   @ApiOperation({

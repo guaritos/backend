@@ -1,0 +1,118 @@
+{
+  "strategy_snap_shot_items": {
+    "source": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+    "alpha": 0.15,
+    "beta": 0.7,
+    "epsilon": 0.001,
+    "r": {
+      "key": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+      "value": 0.7441061307563145
+    },
+    "p": {
+      "key": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+      "value": 0.7441061307563145
+    },
+    "weighted_edges": [
+      {
+        "from": "0xf4c911492f4aa360908069098278f10a3516382413e9e79e92faa956e711b397",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.01639871382636656,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "278045301",
+        "timestamp": 1665584708580,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::aptos_account::transfer"
+        }
+      },
+      {
+        "from": "0xf4c911492f4aa360908069098278f10a3516382413e9e79e92faa956e711b397",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.01639871382636656,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "278054517",
+        "timestamp": 1665585319670,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::aptos_account::transfer"
+        }
+      },
+      {
+        "from": "0xa67aac00ccf4170e11623e4f091cdc7bbfc78648e92fcf36173ebdaf6c40aefb",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.1639871382636656,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "293539235",
+        "timestamp": 1666390676957,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::coin::transfer"
+        }
+      },
+      {
+        "from": "0x4e9fce03284c0ce0b86c88dd5a46f050cad2f4f33c4cdd29d98f501868558c81",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.00819935691318328,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "299385601",
+        "timestamp": 1666596244871,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::aptos_account::transfer"
+        }
+      },
+      {
+        "from": "0x4e584449a669647f8cce385b9107893dd442dbc6fea41319becdb92cb43ee0da",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.00819935691318328,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "334414256",
+        "timestamp": 1667735525168,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::aptos_account::transfer"
+        }
+      },
+      {
+        "from": "0xedfdfcb15c27f5345f41058ff298dbb1b513d72b918185ad655d8d453191bdfa",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.01639871382636656,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "345639460",
+        "timestamp": 1668316196235,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::aptos_account::transfer"
+        }
+      },
+      {
+        "from": "0x163ec4b75155b4fae429c8e5c246def230bee25480cc7fbbe42768d3f26fdab8",
+        "to": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+        "weight": 0.025418006430868167,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "361633518",
+        "timestamp": 1669228966425,
+        "metadata": {
+          "contract_address": "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "event_type": "0x1::aptos_account::transfer"
+        }
+      },
+      {
+        "from": "0x610e1b4c3a25f4a05db0c8d7f24ceb30e226bf1661556c48429fae7a2b9c29e1",
+        "to": "0xedfdfcb15c27f5345f41058ff298dbb1b513d72b918185ad655d8d453191bdfa",
+        "weight": 0.0020908360128617364,
+        "symbol": "APT_0x1::aptos_coin::AptosCoin",
+        "hash": "345636686",
+        "timestamp": 1668315996212,
+        "metadata": {
+          "contract_address": "",
+          "event_type": ""
+        }
+      }
+    ]
+  },
+  "rank_items": {
+    "key": "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12",
+    "value": 0.7441061307563145
+  }
+}
